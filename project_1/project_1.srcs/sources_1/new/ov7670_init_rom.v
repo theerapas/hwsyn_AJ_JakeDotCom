@@ -1,3 +1,8 @@
+// Register ROM for OV7670 RGB565 operation.
+//
+// Each entry is {register_address, register_value}. Special words:
+// - 16'hFFFE: delay marker handled by ov7670_init_controller
+// - 16'hFFFF: end of table
 module ov7670_init_rom (
     input  wire [7:0] addr,
     input  wire       colorbar,

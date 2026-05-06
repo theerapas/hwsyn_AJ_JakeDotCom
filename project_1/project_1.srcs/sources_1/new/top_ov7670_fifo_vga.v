@@ -1,5 +1,15 @@
 `timescale 1ns / 1ps
 
+// Top-level video pipeline for Basys 3 + OV7670.
+//
+// Clock domains:
+// - CLK100MHZ drives SCCB camera configuration and creates the 25 MHz clock.
+// - cam_pclk_buf captures camera data in the OV7670 pixel clock domain.
+// - clk25 drives VGA timing and framebuffer reads.
+//
+// Video path:
+// OV7670 RGB565 stream -> 320x240 RGB444 framebuffer -> optional calibration
+// and image filter -> 640x480 VGA output by 2x pixel/line repetition.
 module top_ov7670_fifo_vga (
     input  wire CLK100MHZ,
     input  wire [7:0] sw,
@@ -29,6 +39,8 @@ module top_ov7670_fifo_vga (
 
     wire clk25 = div4[1];
 
+    // OV7670 requires an external clock. 25 MHz works with the register
+    // configuration used in ov7670_init_rom.v.
     assign cam_xclk  = clk25;
     assign cam_pwdn  = 1'b0;
 
@@ -95,6 +107,10 @@ module top_ov7670_fifo_vga (
     wire [16:0] wr_addr =
         ({9'd0, cap_dst_y} << 8) + ({9'd0, cap_dst_y} << 6) + {8'd0, cap_dst_x};
 
+    // Camera capture. Data is sampled on the falling PCLK edge and consumed on
+    // the following rising edge, matching the timing style used by the reference
+    // OV7670 capture design. Every other source column/row is stored to convert
+    // the VGA-sized sensor stream into the required 320x240 frame.
     always @(posedge cam_pclk_buf) begin
         pclk_activity <= ~pclk_activity;
         pclk_seen <= 1'b1;
@@ -165,6 +181,8 @@ module top_ov7670_fifo_vga (
         end
     endfunction
 
+    // User-selectable filters. sw[4:2] selects normal, grayscale, inversion,
+    // red-only, green-only, or blue-only video.
     function [11:0] apply_filter;
         input [11:0] rgb;
         input [2:0] mode;
@@ -182,6 +200,7 @@ module top_ov7670_fifo_vga (
         end
     endfunction
 
+    // Saturating subtract helper used by the camera color calibration.
     function [3:0] sub_sat4;
         input [3:0] value;
         input [3:0] amount;

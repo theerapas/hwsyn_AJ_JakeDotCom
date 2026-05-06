@@ -1,7 +1,7 @@
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
 ---------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
-| Date         : Wed May  6 15:11:56 2026
+| Date         : Wed May  6 17:30:37 2026
 | Host         : tim_notebook running 64-bit major release  (build 9200)
 | Command      : report_utilization -file top_ov7670_fifo_vga_utilization_synth.rpt -pb top_ov7670_fifo_vga_utilization_synth.pb
 | Design       : top_ov7670_fifo_vga
@@ -31,15 +31,15 @@ Table of Contents
 +-------------------------+------+-------+------------+-----------+-------+
 |        Site Type        | Used | Fixed | Prohibited | Available | Util% |
 +-------------------------+------+-------+------------+-----------+-------+
-| Slice LUTs*             |  481 |     0 |          0 |     20800 |  2.31 |
-|   LUT as Logic          |  481 |     0 |          0 |     20800 |  2.31 |
+| Slice LUTs*             |  312 |     0 |          0 |     20800 |  1.50 |
+|   LUT as Logic          |  312 |     0 |          0 |     20800 |  1.50 |
 |   LUT as Memory         |    0 |     0 |          0 |      9600 |  0.00 |
-| Slice Registers         |  242 |     0 |          0 |     41600 |  0.58 |
-|   Register as Flip Flop |  242 |     0 |          0 |     41600 |  0.58 |
+| Slice Registers         |  221 |     0 |          0 |     41600 |  0.53 |
+|   Register as Flip Flop |  221 |     0 |          0 |     41600 |  0.53 |
 |   Register as Latch     |    0 |     0 |          0 |     41600 |  0.00 |
 | F7 Muxes                |    0 |     0 |          0 |     16300 |  0.00 |
 | F8 Muxes                |    0 |     0 |          0 |      8150 |  0.00 |
-| Unique Control Sets     |   31 |       |          0 |      8150 |  0.38 |
+| Unique Control Sets     |   29 |       |          0 |      8150 |  0.36 |
 +-------------------------+------+-------+------------+-----------+-------+
 * Warning! The Final LUT count, after physical optimizations and full implementation, is typically lower. Run opt_design after synthesis, if not already completed, for a more realistic count.
 Warning! LUT value is adjusted to account for LUT combining.
@@ -61,8 +61,8 @@ Warning! For any ECO changes, please run place_design if there are unplaced inst
 | 0     |          Yes |           - |            - |
 | 0     |          Yes |           - |          Set |
 | 0     |          Yes |           - |        Reset |
-| 24    |          Yes |         Set |            - |
-| 218   |          Yes |       Reset |            - |
+| 25    |          Yes |         Set |            - |
+| 196   |          Yes |       Reset |            - |
 +-------+--------------+-------------+--------------+
 
 
@@ -155,18 +155,18 @@ Warning! For any ECO changes, please run place_design if there are unplaced inst
 +----------+------+---------------------+
 | Ref Name | Used | Functional Category |
 +----------+------+---------------------+
-| FDRE     |  218 |        Flop & Latch |
-| LUT6     |  178 |                 LUT |
-| LUT4     |  130 |                 LUT |
-| LUT5     |  104 |                 LUT |
-| LUT3     |   78 |                 LUT |
-| LUT2     |   78 |                 LUT |
-| CARRY4   |   50 |          CarryLogic |
+| FDRE     |  196 |        Flop & Latch |
+| LUT6     |  125 |                 LUT |
+| LUT4     |   74 |                 LUT |
+| LUT5     |   66 |                 LUT |
+| LUT2     |   58 |                 LUT |
 | RAMB36E1 |   36 |        Block Memory |
 | OBUF     |   34 |                  IO |
-| FDSE     |   24 |        Flop & Latch |
+| LUT3     |   30 |                 LUT |
+| FDSE     |   25 |        Flop & Latch |
 | IBUF     |   20 |                  IO |
-| LUT1     |   10 |                 LUT |
+| CARRY4   |   20 |          CarryLogic |
+| LUT1     |    8 |                 LUT |
 | BUFG     |    3 |               Clock |
 | OBUFT    |    1 |                  IO |
 +----------+------+---------------------+
