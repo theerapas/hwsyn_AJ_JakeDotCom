@@ -10,15 +10,16 @@ module ov7670_init_rom (
             8'h02: data = 16'h1280; // reset again, matching the reference flow
             8'h03: data = 16'hFFFE;
 
-            // Register sequence copied from the local example project's
-            // ov7670_registers.v, with only COM17 made switch-selectable.
+            // RGB565 setup based on the local example project's
+            // ov7670_registers.v. Later AWB/AEC registers are board-specific
+            // tuning added after SCCB reliability was fixed.
             8'h04: data = colorbar ? 16'h1206 : 16'h1204;
             8'h05: data = 16'h1100;
             8'h06: data = 16'h0C00;
             8'h07: data = 16'h3E00;
             8'h08: data = 16'h8C00;
             8'h09: data = 16'h0400;
-            8'h0A: data = 16'h40D0;
+            8'h0A: data = 16'h40D0; // COM15: RGB565, full output range
             8'h0B: data = 16'h3A04;
             8'h0C: data = 16'h1438;
             8'h0D: data = 16'h4FB3;
