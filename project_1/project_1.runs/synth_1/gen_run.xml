@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<GenRun Id="synth_1" LaunchPart="xc7a35tcpg236-1" LaunchTime="1778063385" LaunchIncrCheckpoint="$PSRCDIR/utils_1/imports/synth_1/top_ov7670_fifo_vga.dcp">
+<GenRun Id="synth_1" LaunchPart="xc7a35tcpg236-1" LaunchTime="1778067202" LaunchIncrCheckpoint="$PSRCDIR/utils_1/imports/synth_1/top_ov7670_fifo_vga.dcp">
+  <File Type="PA-TCL" Name="top_ov7670_fifo_vga.tcl"/>
   <File Type="REPORTS-TCL" Name="top_ov7670_fifo_vga_reports.tcl"/>
+  <File Type="RDS-RDS" Name="top_ov7670_fifo_vga.vds"/>
+  <File Type="RDS-PROPCONSTRS" Name="top_ov7670_fifo_vga_drc_synth.rpt"/>
   <File Type="RDS-UTIL" Name="top_ov7670_fifo_vga_utilization_synth.rpt"/>
   <File Type="RDS-UTIL-PB" Name="top_ov7670_fifo_vga_utilization_synth.pb"/>
-  <File Type="PA-TCL" Name="top_ov7670_fifo_vga.tcl"/>
-  <File Type="RDS-RDS" Name="top_ov7670_fifo_vga.vds"/>
   <File Type="RDS-DCP" Name="top_ov7670_fifo_vga.dcp"/>
+  <File Type="VDS-TIMINGSUMMARY" Name="top_ov7670_fifo_vga_timing_summary_synth.rpt"/>
+  <File Type="VDS-TIMING-PB" Name="top_ov7670_fifo_vga_timing_summary_synth.pb"/>
   <FileSet Name="sources" Type="DesignSrcs" RelSrcDir="$PSRCDIR/sources_1" RelGenDir="$PGENDIR/sources_1">
     <Filter Type="Srcs"/>
     <File Path="$PSRCDIR/sources_1/new/ov7670_init_controller.v">

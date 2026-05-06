@@ -224,20 +224,15 @@ module top_ov7670_fifo_vga (
             sum_ch = {2'b00, r} + {2'b00, g} + {2'b00, b};
 
             // Board/camera calibration:
-            // - clamp chroma speckles near black
-            // - subtract the OV7670 red pedestal seen in shadows
-            // - reduce the green tint from this sensor/module setup
+            // - clamp dark/red-only chroma speckles near black
+            // - trim the residual warm cast after sensor-side AWB gain tuning
             // SW5 bypasses this path for raw sensor color-bar debugging.
-            if ((max_ch < 4'h4) || (sum_ch < 6'd12) || ((r > g) && (r > b) && (r < 4'h8) && (g < 4'h5) && (b < 4'h5))) begin
+            if ((max_ch < 4'h4) ||
+                (sum_ch < 6'd10) ||
+                ((r > g + 4'h2) && (r > b + 4'h2) && (r < 4'h9) && (g < 4'h5) && (b < 4'h5))) begin
                 color_balance = 12'h000;
             end else begin
-                // The OV7670 tends to leave a red pedestal in shadows on this setup.
-                if (max_ch < 4'h7)
-                    r = sub_sat4(r, 4'h3);
-                else
-                    r = sub_sat4(r, 4'h1);
-
-                g = sub_sat4(g, 4'h1);
+                r = sub_sat4(r, 4'h1);
                 color_balance = {r, g, b};
             end
         end

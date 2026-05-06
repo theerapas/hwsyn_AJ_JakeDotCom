@@ -1,0 +1,76 @@
+#-----------------------------------------------------------
+# Vivado v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Wed May  6 17:47:11 2026
+# Process ID         : 10512
+# Current directory  : C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/Project/project_1
+# Command line       : vivado.exe -gui_launcher_event rodinguilauncherevent24160 C:\Users\timap\Desktop\Tim\CU\Year2\HWSynLab\Project\project_1\project_1.xpr
+# Log file           : C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/Project/project_1/vivado.log
+# Journal file       : C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/Project/project_1\vivado.jou
+# Running On         : tim_notebook
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26200
+# Processor Detail   : Intel(R) Core(TM) Ultra 5 125H
+# CPU Frequency      : 2995 MHz
+# CPU Physical cores : 14
+# CPU Logical cores  : 18
+# Host memory        : 16766 MB
+# Swap memory        : 17179 MB
+# Total Virtual      : 33945 MB
+# Available Virtual  : 10844 MB
+#-----------------------------------------------------------
+start_gui
+open_project C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/Project/project_1/project_1.xpr
+update_compile_order -fileset sources_1
+set_property SOURCE_SET sources_1 [get_filesets sim_1]
+import_files -fileset sim_1 -norecurse {C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/Project/project_1/project_1.srcs/simulationista/new/tb_sccb_write_byte.v C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/Project/project_1/project_1.srcs/simulationista/new/tb_top_capture_filters.v C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/Project/project_1/project_1.srcs/simulationista/new/tb_vga_640x480.v C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/Project/project_1/project_1.srcs/simulationista/new/tb_ov7670_init_controller.v}
+update_compile_order -fileset sim_1
+launch_simulation
+source top_ov7670_fifo_vga.tcl
+close_sim
+launch_simulation
+source top_ov7670_fifo_vga.tcl
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_vga_640x480 [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+launch_simulation
+close_sim
+launch_simulation
+source tb_vga_640x480.tcl
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_ov7670_init_controller [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+close_sim
+launch_simulation
+source tb_ov7670_init_controller.tcl
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_sccb_write_byte [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+close_sim
+launch_simulation
+source tb_sccb_write_byte.tcl
+# Disabling source management mode.  This is to allow the top design properties to be set without GUI intervention.
+set_property source_mgmt_mode None [current_project]
+set_property top tb_top_capture_filters [get_filesets sim_1]
+set_property top_lib xil_defaultlib [get_filesets sim_1]
+# Re-enabling previously disabled source management mode.
+set_property source_mgmt_mode All [current_project]
+update_compile_order -fileset sim_1
+close_sim
+launch_simulation
+source tb_top_capture_filters.tcl
+close_sim

@@ -27,8 +27,8 @@ module ov7670_init_rom (
             8'h0A: data = 16'h40D0; // COM15: RGB565, full output range
             8'h0B: data = 16'h3A04;
             8'h0C: data = 16'h1438;
-            8'h0D: data = 16'h4FB3;
-            8'h0E: data = 16'h50B3;
+            8'h0D: data = 16'h4F80; // MTX1: reduce red/yellow cast on this module
+            8'h0E: data = 16'h5080; // MTX2: reduce red/yellow cast on this module
             8'h0F: data = 16'h5100;
             8'h10: data = 16'h523D;
             8'h11: data = 16'h53A7;
@@ -78,7 +78,11 @@ module ov7670_init_rom (
             8'h3D: data = 16'h6F9F; // AWB control
             8'h3E: data = 16'h6A40; // green/red channel balance helper
 
-            8'h3F: data = 16'hFFFF;
+            // Sensor-side gain trim. These registers are written after AWB is
+            // enabled so the module starts from a less red-biased balance.
+            8'h3F: data = 16'h0190; // blue AWB gain, default is 0x80
+            8'h40: data = 16'h0250; // red AWB gain, default is 0x80
+            8'h41: data = 16'hFFFF;
             default: data = 16'hFFFF;
         endcase
     end
