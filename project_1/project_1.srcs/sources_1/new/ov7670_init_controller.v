@@ -17,6 +17,7 @@ module ov7670_init_controller (
 
     reg [7:0] rom_addr = 8'd0;
     wire [15:0] rom_word;
+    reg colorbar_d = 1'b0;
 
     ov7670_init_rom rom_u (
         .addr     (rom_addr),
@@ -52,10 +53,17 @@ module ov7670_init_controller (
             rom_addr <= 0;
             start_tx <= 0;
             init_done <= 0;
+            colorbar_d <= colorbar;
         end else begin
             start_tx <= 0;
 
-            case (state)
+            if (init_done && (colorbar != colorbar_d)) begin
+                state <= S_WAIT;
+                wait_ctr <= 0;
+                rom_addr <= 0;
+                init_done <= 0;
+                colorbar_d <= colorbar;
+            end else case (state)
                 S_WAIT: begin
                     if (wait_ctr < 16'd50000) begin
                         wait_ctr <= wait_ctr + 1'd1; // initial settle

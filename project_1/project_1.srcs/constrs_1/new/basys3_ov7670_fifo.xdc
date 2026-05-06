@@ -6,8 +6,8 @@ create_clock -add -name sys_clk_pin -period 10.00 -waveform {0 5} [get_ports CLK
 ## sw[0] = VGA internal color bars
 ## sw[1] = live camera signal viewer
 ## sw[4:2] = filter mode: 0 normal, 1 grayscale, 2 invert, 3 red, 4 green, 5 blue
-## sw[5] = OV7670 internal color bars at camera init; set before programming/reset
-## sw[7:6] = RGB565 variant: 0 normal, 1 byte swap, 2 red/blue swap, 3 byte + red/blue swap
+## sw[5] = reverse camera data bits D7..D0 for wiring/order debug
+## sw[7:6] = camera decode: 0 RGB565, 1 RGB565 byte swap, 2 YUYV, 3 UYVY
 set_property -dict { PACKAGE_PIN V17 IOSTANDARD LVCMOS33 } [get_ports {sw[0]}]
 set_property -dict { PACKAGE_PIN V16 IOSTANDARD LVCMOS33 } [get_ports {sw[1]}]
 set_property -dict { PACKAGE_PIN W16 IOSTANDARD LVCMOS33 } [get_ports {sw[2]}]

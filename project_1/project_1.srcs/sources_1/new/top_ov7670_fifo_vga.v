@@ -38,7 +38,7 @@ module top_ov7670_fifo_vga (
     ov7670_init_controller init_u (
         .clk       (CLK100MHZ),
         .reset     (1'b0),
-        .colorbar  (sw[5]),
+        .colorbar  (1'b0),
         .sioc      (cam_sioc),
         .siod      (cam_siod),
         .init_done (cam_init_done)
@@ -60,14 +60,10 @@ module top_ov7670_fifo_vga (
 
     localparam FRAME_WIDTH  = 320;
     localparam FRAME_HEIGHT = 240;
-    localparam FRAME_PAIRS  = 38400;
+    localparam FRAME_PIXELS = 76800;
 
-    // One BRAM word stores two adjacent RGB332 pixels.
-    (* ram_style = "block" *) reg [15:0] framebuffer [0:FRAME_PAIRS-1];
-
-    reg [2:0] vsync_sr = 3'b111;
-    always @(posedge cam_pclk_buf) vsync_sr <= {vsync_sr[1:0], cam_vsync};
-    wire vsync_rise = (vsync_sr[2:1] == 2'b01);
+    // Store the same 12-bit RGB444 format used by the reference design.
+    (* ram_style = "block" *) reg [11:0] framebuffer [0:FRAME_PIXELS-1];
 
     reg pclk_activity = 1'b0;
     reg pclk_seen     = 1'b0;
@@ -77,120 +73,167 @@ module top_ov7670_fifo_vga (
     reg pixel_seen    = 1'b0;
     reg frame_ready   = 1'b0;
 
-    reg href_d = 1'b0;
-    reg [1:0] cap_phase = 2'd0;
-    reg [7:0] pix0_hi = 8'h00;
-    reg [7:0] pix0_lo = 8'h00;
-    reg [7:0] pix1_hi = 8'h00;
-    reg [8:0] cap_x = 9'd0;
-    reg [7:0] cap_y = 8'd0;
+    reg [1:0] byte_phase = 2'd0;
+    reg       href_d = 1'b0;
+    reg [7:0] b0 = 8'h00;
+    reg [7:0] b1 = 8'h00;
+    reg [7:0] b2 = 8'h00;
+    reg [9:0] cap_x = 10'd0;
+    reg [8:0] cap_y = 9'd0;
 
-    wire [15:0] wr_pair_addr =
-        ({8'd0, cap_y} << 7) + ({8'd0, cap_y} << 5) + {8'd0, cap_x[8:1]};
+    reg       latched_vsync = 1'b0;
+    reg       latched_href = 1'b0;
+    reg [7:0] latched_d = 8'h00;
+
+    always @(negedge cam_pclk_buf) begin
+        latched_vsync <= cam_vsync;
+        latched_href <= cam_href;
+        latched_d <= sw[5] ? reverse8(cam_d) : cam_d;
+    end
+
+    wire [8:0] cap_dst_x = cap_x[9:1];
+    wire [7:0] cap_dst_y = cap_y[8:1];
+
+    wire [16:0] wr_addr =
+        ({9'd0, cap_dst_y} << 8) + ({9'd0, cap_dst_y} << 6) + {8'd0, cap_dst_x};
 
     always @(posedge cam_pclk_buf) begin
         pclk_activity <= ~pclk_activity;
         pclk_seen <= 1'b1;
-        href_d <= cam_href;
-        if (cam_href)  href_seen <= 1'b1;
-        if (cam_vsync) vsync_seen <= 1'b1;
+        href_d <= latched_href;
+        if (latched_href)  href_seen <= 1'b1;
+        if (latched_vsync) vsync_seen <= 1'b1;
 
         if (!cam_init_done) begin
-            cap_phase <= 2'd0;
-            cap_x <= 9'd0;
-            cap_y <= 8'd0;
+            byte_phase <= 2'd0;
+            cap_x <= 10'd0;
+            cap_y <= 9'd0;
             frame_ready <= 1'b0;
             pixel_seen <= 1'b0;
-        end else if (vsync_rise) begin
-            cap_phase <= 2'd0;
-            cap_x <= 9'd0;
-            cap_y <= 8'd0;
+        end else if (latched_vsync) begin
+            byte_phase <= 2'd0;
+            cap_x <= 10'd0;
+            cap_y <= 9'd0;
             if (pixel_seen) begin
                 frame_seen <= 1'b1;
                 frame_ready <= 1'b1;
             end
             pixel_seen <= 1'b0;
-        end else if (cam_href) begin
-            case (cap_phase)
+        end else if (latched_href) begin
+            case (byte_phase)
                 2'd0: begin
-                    pix0_hi <= cam_d;
-                    cap_phase <= 2'd1;
+                    b0 <= latched_d;
+                    byte_phase <= 2'd1;
                 end
 
                 2'd1: begin
-                    pix0_lo <= cam_d;
-                    cap_phase <= 2'd2;
+                    b1 <= latched_d;
+                    byte_phase <= 2'd2;
                 end
 
                 2'd2: begin
-                    pix1_hi <= cam_d;
-                    cap_phase <= 2'd3;
+                    b2 <= latched_d;
+                    byte_phase <= 2'd3;
                 end
 
                 default: begin
-                    if ((cap_x < FRAME_WIDTH-1) && (cap_y < FRAME_HEIGHT)) begin
-                        case (sw[7:6])
-                            2'b00: framebuffer[wr_pair_addr] <= {
-                                rgb565_to_rgb332(pix0_hi, pix0_lo, 1'b0), // RGB565 high-low
-                                rgb565_to_rgb332(pix1_hi, cam_d,   1'b0)
-                            };
-
-                            2'b01: framebuffer[wr_pair_addr] <= {
-                                rgb565_to_rgb332(pix0_lo, pix0_hi, 1'b0), // byte-swapped RGB565
-                                rgb565_to_rgb332(cam_d,   pix1_hi, 1'b0)
-                            };
-
-                            2'b10: framebuffer[wr_pair_addr] <= {
-                                rgb565_to_rgb332(pix0_hi, pix0_lo, 1'b1), // B/R swapped
-                                rgb565_to_rgb332(pix1_hi, cam_d,   1'b1)
-                            };
-
-                            default: framebuffer[wr_pair_addr] <= {
-                                rgb565_to_rgb332(pix0_lo, pix0_hi, 1'b1), // byte + B/R swap
-                                rgb565_to_rgb332(cam_d,   pix1_hi, 1'b1)
-                            };
-                        endcase
-                        if ((pix0_hi != 8'h00) || (pix0_lo != 8'h00) || (pix1_hi != 8'h00) || (cam_d != 8'h00))
-                            pixel_seen <= 1'b1;
+                    byte_phase <= 2'd0;
+                    if ((cap_x < 10'd640) && (cap_y < 9'd480)) begin
+                        if (!cap_y[0] && (cap_dst_x < FRAME_WIDTH) && (cap_dst_y < FRAME_HEIGHT)) begin
+                            framebuffer[wr_addr] <= camera_word_to_rgb444(b0, b1, b2, latched_d, sw[7:6]);
+                            if ((b0 != 8'h00) || (b1 != 8'h00) || (b2 != 8'h00) || (latched_d != 8'h00))
+                                pixel_seen <= 1'b1;
+                        end
+                        cap_x <= cap_x + 10'd2;
                     end
-                    if (cap_x < FRAME_WIDTH-2)
-                        cap_x <= cap_x + 9'd2;
-                    cap_phase <= 2'd0;
                 end
             endcase
         end else begin
-            cap_phase <= 2'd0;
-            cap_x <= 9'd0;
-            if (href_d && !cam_href && (cap_y < FRAME_HEIGHT-1))
-                cap_y <= cap_y + 8'd1;
+            byte_phase <= 2'd0;
+            cap_x <= 10'd0;
+            if (href_d && !latched_href && (cap_y < 9'd479))
+                cap_y <= cap_y + 9'd1;
         end
     end
 
     wire [8:0] src_x = sx[9:1];
     wire [7:0] src_y = sy[8:1];
-    wire [15:0] rd_pair_addr =
-        ({8'd0, src_y} << 7) + ({8'd0, src_y} << 5) + {8'd0, src_x[8:1]};
+    wire [16:0] rd_addr =
+        ({9'd0, src_y} << 8) + ({9'd0, src_y} << 6) + {8'd0, src_x};
 
-    reg [15:0] pixel_pair = 16'h0000;
-    reg        src_x_lsb_d = 1'b0;
-    reg [7:0]  frame_rgb332 = 8'h00;
     reg [11:0] camera_rgb = 12'h000;
     reg [11:0] filtered_rgb = 12'h000;
     reg [11:0] test_rgb = 12'h000;
     reg [11:0] live_rgb = 12'h000;
 
-    function [7:0] rgb565_to_rgb332;
+    function [7:0] reverse8;
+        input [7:0] value;
+        begin
+            reverse8 = {value[0], value[1], value[2], value[3], value[4], value[5], value[6], value[7]};
+        end
+    endfunction
+
+    function [11:0] rgb565_to_rgb444;
         input [7:0] hi;
         input [7:0] lo;
         input       swap_rb;
-        reg [2:0] r3;
-        reg [2:0] g3;
-        reg [1:0] b2;
+        reg [3:0] r4;
+        reg [3:0] g4;
+        reg [3:0] b4;
         begin
-            r3 = hi[7:5];
-            g3 = hi[2:0];
-            b2 = lo[4:3];
-            rgb565_to_rgb332 = swap_rb ? {lo[4:2], g3, hi[7:6]} : {r3, g3, b2};
+            r4 = hi[7:4];
+            g4 = {hi[2:0], lo[7]};
+            b4 = lo[4:1];
+            rgb565_to_rgb444 = swap_rb ? {b4, g4, r4} : {r4, g4, b4};
+        end
+    endfunction
+
+    function [3:0] sat4_from_8bit;
+        input signed [11:0] value;
+        begin
+            if (value < 12'sd0)
+                sat4_from_8bit = 4'h0;
+            else if (value > 12'sd255)
+                sat4_from_8bit = 4'hF;
+            else
+                sat4_from_8bit = value[7:4];
+        end
+    endfunction
+
+    function [11:0] yuv_to_rgb444;
+        input [7:0] y;
+        input [7:0] u;
+        input [7:0] v;
+        reg signed [11:0] yy;
+        reg signed [11:0] uu;
+        reg signed [11:0] vv;
+        reg signed [11:0] rr;
+        reg signed [11:0] gg;
+        reg signed [11:0] bb;
+        begin
+            yy = {4'b0000, y};
+            uu = {4'b0000, u} - 12'sd128;
+            vv = {4'b0000, v} - 12'sd128;
+            rr = yy + vv + (vv >>> 2) + (vv >>> 3);
+            gg = yy - (uu >>> 2) - (uu >>> 4) - (vv >>> 1) - (vv >>> 3);
+            bb = yy + uu + (uu >>> 1) + (uu >>> 2);
+            yuv_to_rgb444 = {sat4_from_8bit(rr), sat4_from_8bit(gg), sat4_from_8bit(bb)};
+        end
+    endfunction
+
+    function [11:0] camera_word_to_rgb444;
+        input [7:0] byte0;
+        input [7:0] byte1;
+        input [7:0] byte2;
+        input [7:0] byte3;
+        input [1:0] mode;
+        begin
+            case (mode)
+                2'b00: camera_word_to_rgb444 = rgb565_to_rgb444(byte0, byte1, 1'b0); // RGB565
+                2'b01: camera_word_to_rgb444 = rgb565_to_rgb444(byte1, byte0, 1'b0); // RGB565 byte swap
+                2'b10: camera_word_to_rgb444 = yuv_to_rgb444(byte0, byte1, byte3);   // YUYV
+                default: camera_word_to_rgb444 = yuv_to_rgb444(byte1, byte0, byte2);  // UYVY
+            endcase
         end
     endfunction
 
@@ -211,8 +254,6 @@ module top_ov7670_fifo_vga (
         end
     endfunction
 
-    wire [7:0] selected_rgb332 = src_x_lsb_d ? pixel_pair[7:0] : pixel_pair[15:8];
-
     always @(posedge clk25) begin
         if (sx < 80)       test_rgb <= 12'hF00;
         else if (sx < 160) test_rgb <= 12'h0F0;
@@ -230,19 +271,9 @@ module top_ov7670_fifo_vga (
         };
 
         if (active_video && frame_ready) begin
-            pixel_pair <= framebuffer[rd_pair_addr];
-            src_x_lsb_d <= src_x[0];
-            frame_rgb332 <= selected_rgb332;
-            camera_rgb <= {
-                selected_rgb332[7:5], selected_rgb332[7],
-                selected_rgb332[4:2], selected_rgb332[4],
-                selected_rgb332[1:0], selected_rgb332[1:0]
-            };
+            camera_rgb <= framebuffer[rd_addr];
             filtered_rgb <= apply_filter(camera_rgb, sw[4:2]);
         end else begin
-            pixel_pair <= 16'h0000;
-            src_x_lsb_d <= 1'b0;
-            frame_rgb332 <= 8'h00;
             camera_rgb <= 12'h000;
             filtered_rgb <= 12'h000;
         end
