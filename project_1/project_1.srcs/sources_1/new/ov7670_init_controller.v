@@ -1,6 +1,7 @@
 module ov7670_init_controller (
     input  wire clk,
     input  wire reset,
+    input  wire colorbar,
     output wire sioc,
     inout  wire siod,
     output reg  init_done = 1'b0
@@ -18,8 +19,9 @@ module ov7670_init_controller (
     wire [15:0] rom_word;
 
     ov7670_init_rom rom_u (
-        .addr(rom_addr),
-        .data(rom_word)
+        .addr     (rom_addr),
+        .colorbar (colorbar),
+        .data     (rom_word)
     );
 
     sccb_write_byte sccb_u (

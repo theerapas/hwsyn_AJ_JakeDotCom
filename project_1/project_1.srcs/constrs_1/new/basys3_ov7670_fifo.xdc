@@ -5,8 +5,17 @@ create_clock -add -name sys_clk_pin -period 10.00 -waveform {0 5} [get_ports CLK
 ## Debug switches
 ## sw[0] = VGA internal color bars
 ## sw[1] = live camera signal viewer
+## sw[4:2] = filter mode: 0 normal, 1 grayscale, 2 invert, 3 red, 4 green, 5 blue
+## sw[5] = OV7670 internal color bars at camera init; set before programming/reset
+## sw[7:6] = RGB565 variant: 0 normal, 1 byte swap, 2 red/blue swap, 3 byte + red/blue swap
 set_property -dict { PACKAGE_PIN V17 IOSTANDARD LVCMOS33 } [get_ports {sw[0]}]
 set_property -dict { PACKAGE_PIN V16 IOSTANDARD LVCMOS33 } [get_ports {sw[1]}]
+set_property -dict { PACKAGE_PIN W16 IOSTANDARD LVCMOS33 } [get_ports {sw[2]}]
+set_property -dict { PACKAGE_PIN W17 IOSTANDARD LVCMOS33 } [get_ports {sw[3]}]
+set_property -dict { PACKAGE_PIN W15 IOSTANDARD LVCMOS33 } [get_ports {sw[4]}]
+set_property -dict { PACKAGE_PIN V15 IOSTANDARD LVCMOS33 } [get_ports {sw[5]}]
+set_property -dict { PACKAGE_PIN W14 IOSTANDARD LVCMOS33 } [get_ports {sw[6]}]
+set_property -dict { PACKAGE_PIN W13 IOSTANDARD LVCMOS33 } [get_ports {sw[7]}]
 
 ## LEDs
 set_property -dict { PACKAGE_PIN U16 IOSTANDARD LVCMOS33 } [get_ports {led[0]}]
@@ -42,12 +51,13 @@ set_property -dict { PACKAGE_PIN R18 IOSTANDARD LVCMOS33 } [get_ports cam_pwdn]
 set_property -dict { PACKAGE_PIN P18 IOSTANDARD LVCMOS33 } [get_ports cam_reset]
 set_property -dict { PACKAGE_PIN A14 IOSTANDARD LVCMOS33 } [get_ports cam_sioc]
 set_property -dict { PACKAGE_PIN A15 IOSTANDARD LVCMOS33 } [get_ports cam_siod]
+set_property PULLUP true [get_ports cam_siod]
 set_property -dict { PACKAGE_PIN B15 IOSTANDARD LVCMOS33 } [get_ports cam_vsync]
 set_property -dict { PACKAGE_PIN C15 IOSTANDARD LVCMOS33 } [get_ports cam_xclk]
 
 ## Camera PCLK is wired to a non-clock-capable pin in this pinout.
 ## This lets Vivado route that input to the inferred clock buffer.
-set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets cam_pclk_buf_IBUF]
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets -of_objects [get_ports cam_pclk_buf]]
 
 ## VGA
 set_property -dict { PACKAGE_PIN G19 IOSTANDARD LVCMOS33 } [get_ports {vgaRed[0]}]

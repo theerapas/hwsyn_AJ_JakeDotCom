@@ -2,7 +2,7 @@
 
 module top_ov7670_fifo_vga (
     input  wire CLK100MHZ,
-    input  wire [1:0] sw,
+    input  wire [7:0] sw,
 
     input  wire [7:0] cam_d,
     input  wire       cam_vsync,
@@ -24,126 +24,194 @@ module top_ov7670_fifo_vga (
     output wire [15:0] led
 );
 
-    // ----------------------------------------------------------------
-    // clocks from 100 MHz:
-    //   25 MHz for VGA and camera XCLK
-    //   50 MHz for FIFO read state machine
-    // ----------------------------------------------------------------
     reg [1:0] div4 = 2'b00;
     always @(posedge CLK100MHZ) div4 <= div4 + 2'd1;
 
     wire clk25 = div4[1];
-    wire clk50 = div4[0];
 
-    assign cam_xclk = clk25;
+    assign cam_xclk  = clk25;
     assign cam_reset = 1'b1;
     assign cam_pwdn  = 1'b0;
 
-    // ----------------------------------------------------------------
-    // Camera SCCB init
-    // ----------------------------------------------------------------
     wire cam_init_done;
 
     ov7670_init_controller init_u (
-        .clk        (CLK100MHZ),
-        .reset      (1'b0),
-        .sioc       (cam_sioc),
-        .siod       (cam_siod),
-        .init_done  (cam_init_done)
+        .clk       (CLK100MHZ),
+        .reset     (1'b0),
+        .colorbar  (sw[5]),
+        .sioc      (cam_sioc),
+        .siod      (cam_siod),
+        .init_done (cam_init_done)
     );
 
-    // ----------------------------------------------------------------
-    // Camera activity/debug sampling
-    // ----------------------------------------------------------------
-    reg [2:0] vsync_sr = 3'b111;
-    always @(posedge cam_pclk_buf) vsync_sr <= {vsync_sr[1:0], cam_vsync};
-
-    wire vsync_rise = (vsync_sr[2:1] == 2'b01);
-
-    // ----------------------------------------------------------------
-    // VGA timing 640x480@60 style at 25 MHz
-    // ----------------------------------------------------------------
     wire [9:0] sx, sy;
     wire       active_video;
     wire       frame_start;
 
     vga_640x480 vga_u (
-        .clk25       (clk25),
-        .sx          (sx),
-        .sy          (sy),
-        .hsync       (Hsync),
-        .vsync       (Vsync),
-        .active_video(active_video),
-        .frame_start (frame_start)
+        .clk25        (clk25),
+        .sx           (sx),
+        .sy           (sy),
+        .hsync        (Hsync),
+        .vsync        (Vsync),
+        .active_video (active_video),
+        .frame_start  (frame_start)
     );
 
-    // ----------------------------------------------------------------
-    // Direct OV7670 capture into block RAM.
-    //
-    // The OV7670 is configured for QVGA RGB565:
-    // 320 x 240 pixels, 2 bytes per pixel.
-    // VGA reads the same frame buffer scaled 2x to 640 x 480.
-    // ----------------------------------------------------------------
-    localparam FRAME_PIXELS = 17'd76800;
+    localparam FRAME_WIDTH  = 320;
+    localparam FRAME_HEIGHT = 240;
+    localparam FRAME_PAIRS  = 38400;
 
-    (* ram_style = "block" *) reg [15:0] framebuffer [0:76799];
+    // One BRAM word stores two adjacent RGB332 pixels.
+    (* ram_style = "block" *) reg [15:0] framebuffer [0:FRAME_PAIRS-1];
+
+    reg [2:0] vsync_sr = 3'b111;
+    always @(posedge cam_pclk_buf) vsync_sr <= {vsync_sr[1:0], cam_vsync};
+    wire vsync_rise = (vsync_sr[2:1] == 2'b01);
 
     reg pclk_activity = 1'b0;
-    reg pclk_seen = 1'b0;
-    reg href_seen = 1'b0;
-    reg vsync_seen = 1'b0;
-    reg frame_seen = 1'b0;
-    reg pixel_seen = 1'b0;
-    reg byte_phase = 1'b0;
-    reg [7:0] byte_hi = 8'h00;
-    reg [16:0] wr_addr = 17'd0;
+    reg pclk_seen     = 1'b0;
+    reg href_seen     = 1'b0;
+    reg vsync_seen    = 1'b0;
+    reg frame_seen    = 1'b0;
+    reg pixel_seen    = 1'b0;
+    reg frame_ready   = 1'b0;
+
+    reg href_d = 1'b0;
+    reg [1:0] cap_phase = 2'd0;
+    reg [7:0] pix0_hi = 8'h00;
+    reg [7:0] pix0_lo = 8'h00;
+    reg [7:0] pix1_hi = 8'h00;
+    reg [8:0] cap_x = 9'd0;
+    reg [7:0] cap_y = 8'd0;
+
+    wire [15:0] wr_pair_addr =
+        ({8'd0, cap_y} << 7) + ({8'd0, cap_y} << 5) + {8'd0, cap_x[8:1]};
 
     always @(posedge cam_pclk_buf) begin
         pclk_activity <= ~pclk_activity;
         pclk_seen <= 1'b1;
-        if (cam_href) href_seen <= 1'b1;
+        href_d <= cam_href;
+        if (cam_href)  href_seen <= 1'b1;
         if (cam_vsync) vsync_seen <= 1'b1;
 
-        if (!cam_init_done || cam_vsync) begin
-            wr_addr <= 17'd0;
-            byte_phase <= 1'b0;
-            if (cam_vsync)
+        if (!cam_init_done) begin
+            cap_phase <= 2'd0;
+            cap_x <= 9'd0;
+            cap_y <= 8'd0;
+            frame_ready <= 1'b0;
+            pixel_seen <= 1'b0;
+        end else if (vsync_rise) begin
+            cap_phase <= 2'd0;
+            cap_x <= 9'd0;
+            cap_y <= 8'd0;
+            if (pixel_seen) begin
                 frame_seen <= 1'b1;
-        end else if (cam_href) begin
-            if (!byte_phase) begin
-                byte_hi <= cam_d;
-                byte_phase <= 1'b1;
-            end else begin
-                byte_phase <= 1'b0;
-                if (wr_addr < FRAME_PIXELS) begin
-                    framebuffer[wr_addr] <= {byte_hi, cam_d};
-                    wr_addr <= wr_addr + 17'd1;
-                    if ({byte_hi, cam_d} != 16'h0000)
-                        pixel_seen <= 1'b1;
-                end else begin
-                    wr_addr <= wr_addr;
-                end
+                frame_ready <= 1'b1;
             end
+            pixel_seen <= 1'b0;
+        end else if (cam_href) begin
+            case (cap_phase)
+                2'd0: begin
+                    pix0_hi <= cam_d;
+                    cap_phase <= 2'd1;
+                end
+
+                2'd1: begin
+                    pix0_lo <= cam_d;
+                    cap_phase <= 2'd2;
+                end
+
+                2'd2: begin
+                    pix1_hi <= cam_d;
+                    cap_phase <= 2'd3;
+                end
+
+                default: begin
+                    if ((cap_x < FRAME_WIDTH-1) && (cap_y < FRAME_HEIGHT)) begin
+                        case (sw[7:6])
+                            2'b00: framebuffer[wr_pair_addr] <= {
+                                rgb565_to_rgb332(pix0_hi, pix0_lo, 1'b0), // RGB565 high-low
+                                rgb565_to_rgb332(pix1_hi, cam_d,   1'b0)
+                            };
+
+                            2'b01: framebuffer[wr_pair_addr] <= {
+                                rgb565_to_rgb332(pix0_lo, pix0_hi, 1'b0), // byte-swapped RGB565
+                                rgb565_to_rgb332(cam_d,   pix1_hi, 1'b0)
+                            };
+
+                            2'b10: framebuffer[wr_pair_addr] <= {
+                                rgb565_to_rgb332(pix0_hi, pix0_lo, 1'b1), // B/R swapped
+                                rgb565_to_rgb332(pix1_hi, cam_d,   1'b1)
+                            };
+
+                            default: framebuffer[wr_pair_addr] <= {
+                                rgb565_to_rgb332(pix0_lo, pix0_hi, 1'b1), // byte + B/R swap
+                                rgb565_to_rgb332(cam_d,   pix1_hi, 1'b1)
+                            };
+                        endcase
+                        if ((pix0_hi != 8'h00) || (pix0_lo != 8'h00) || (pix1_hi != 8'h00) || (cam_d != 8'h00))
+                            pixel_seen <= 1'b1;
+                    end
+                    if (cap_x < FRAME_WIDTH-2)
+                        cap_x <= cap_x + 9'd2;
+                    cap_phase <= 2'd0;
+                end
+            endcase
         end else begin
-            byte_phase <= 1'b0;
+            cap_phase <= 2'd0;
+            cap_x <= 9'd0;
+            if (href_d && !cam_href && (cap_y < FRAME_HEIGHT-1))
+                cap_y <= cap_y + 8'd1;
         end
     end
 
-    // ----------------------------------------------------------------
-    // VGA pixel generation
-    // SW0 bypasses the camera path and shows internal color bars.
-    // SW1 shows live camera signals:
-    //   red   = VSYNC high
-    //   green = HREF high
-    //   blue  = PCLK was seen
-    //   color intensity also includes the current camera data bus
-    // ----------------------------------------------------------------
-    reg [15:0] rgb565 = 16'h0000;
+    wire [8:0] src_x = sx[9:1];
+    wire [7:0] src_y = sy[8:1];
+    wire [15:0] rd_pair_addr =
+        ({8'd0, src_y} << 7) + ({8'd0, src_y} << 5) + {8'd0, src_x[8:1]};
+
+    reg [15:0] pixel_pair = 16'h0000;
+    reg        src_x_lsb_d = 1'b0;
+    reg [7:0]  frame_rgb332 = 8'h00;
+    reg [11:0] camera_rgb = 12'h000;
+    reg [11:0] filtered_rgb = 12'h000;
     reg [11:0] test_rgb = 12'h000;
     reg [11:0] live_rgb = 12'h000;
-    reg [8:0] disp_x = 9'd0;
-    reg [7:0] disp_y = 8'd0;
-    reg [16:0] rd_addr = 17'd0;
+
+    function [7:0] rgb565_to_rgb332;
+        input [7:0] hi;
+        input [7:0] lo;
+        input       swap_rb;
+        reg [2:0] r3;
+        reg [2:0] g3;
+        reg [1:0] b2;
+        begin
+            r3 = hi[7:5];
+            g3 = hi[2:0];
+            b2 = lo[4:3];
+            rgb565_to_rgb332 = swap_rb ? {lo[4:2], g3, hi[7:6]} : {r3, g3, b2};
+        end
+    endfunction
+
+    function [11:0] apply_filter;
+        input [11:0] rgb;
+        input [2:0] mode;
+        reg [3:0] gray;
+        begin
+            gray = ({2'b00, rgb[11:8]} + {2'b00, rgb[7:4], 1'b0} + {2'b00, rgb[3:0]}) >> 2;
+            case (mode)
+                3'b001: apply_filter = {gray, gray, gray};      // grayscale
+                3'b010: apply_filter = ~rgb;                    // color inversion
+                3'b011: apply_filter = {rgb[11:8], 8'h00};      // red channel
+                3'b100: apply_filter = {4'h0, rgb[7:4], 4'h0};  // green channel
+                3'b101: apply_filter = {8'h00, rgb[3:0]};       // blue channel
+                default: apply_filter = rgb;                    // normal color
+            endcase
+        end
+    endfunction
+
+    wire [7:0] selected_rgb332 = src_x_lsb_d ? pixel_pair[7:0] : pixel_pair[15:8];
 
     always @(posedge clk25) begin
         if (sx < 80)       test_rgb <= 12'hF00;
@@ -161,21 +229,29 @@ module top_ov7670_fifo_vga (
             pclk_seen ? 4'hF : 4'h0
         };
 
-        if (active_video) begin
-            disp_x <= sx[9:1]; // /2
-            disp_y <= sy[8:1]; // /2
-            rd_addr <= ({9'd0, sy[8:1]} << 8) + ({9'd0, sy[8:1]} << 6) + {8'd0, sx[9:1]};
-            rgb565 <= framebuffer[rd_addr];
+        if (active_video && frame_ready) begin
+            pixel_pair <= framebuffer[rd_pair_addr];
+            src_x_lsb_d <= src_x[0];
+            frame_rgb332 <= selected_rgb332;
+            camera_rgb <= {
+                selected_rgb332[7:5], selected_rgb332[7],
+                selected_rgb332[4:2], selected_rgb332[4],
+                selected_rgb332[1:0], selected_rgb332[1:0]
+            };
+            filtered_rgb <= apply_filter(camera_rgb, sw[4:2]);
         end else begin
-            rgb565 <= 16'h0000;
+            pixel_pair <= 16'h0000;
+            src_x_lsb_d <= 1'b0;
+            frame_rgb332 <= 8'h00;
+            camera_rgb <= 12'h000;
+            filtered_rgb <= 12'h000;
         end
     end
 
-    assign vgaRed   = active_video ? (sw[0] ? test_rgb[11:8] : (sw[1] ? live_rgb[11:8] : rgb565[15:12])) : 4'h0;
-    assign vgaGreen = active_video ? (sw[0] ? test_rgb[7:4]  : (sw[1] ? live_rgb[7:4]  : rgb565[10:7]))  : 4'h0;
-    assign vgaBlue  = active_video ? (sw[0] ? test_rgb[3:0]  : (sw[1] ? live_rgb[3:0]  : rgb565[4:1]))   : 4'h0;
+    assign vgaRed   = active_video ? (sw[0] ? test_rgb[11:8] : (sw[1] ? live_rgb[11:8] : filtered_rgb[11:8])) : 4'h0;
+    assign vgaGreen = active_video ? (sw[0] ? test_rgb[7:4]  : (sw[1] ? live_rgb[7:4]  : filtered_rgb[7:4]))  : 4'h0;
+    assign vgaBlue  = active_video ? (sw[0] ? test_rgb[3:0]  : (sw[1] ? live_rgb[3:0]  : filtered_rgb[3:0]))  : 4'h0;
 
-    // LEDs for debug
     assign led[0]  = cam_init_done;
     assign led[1]  = vsync_seen;
     assign led[2]  = href_seen;
@@ -189,6 +265,7 @@ module top_ov7670_fifo_vga (
     assign led[10] = cam_href;
     assign led[11] = pclk_seen;
     assign led[12] = sw[1];
-    assign led[15:13] = 3'd0;
+    assign led[14:13] = sw[7:6];
+    assign led[15] = sw[5];
 
 endmodule
