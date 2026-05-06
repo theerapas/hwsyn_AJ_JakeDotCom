@@ -73,3 +73,4 @@ update_compile_order -fileset sim_1
 close_sim
 launch_simulation
 source tb_top_capture_filters.tcl
+close_sim

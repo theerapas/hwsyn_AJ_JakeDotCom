@@ -535,3 +535,7 @@ $finish called at time : 450 ns : File "C:/Users/timap/Desktop/Tim/CU/Year2/HWSy
 INFO: [USF-XSim-96] XSim completed. Design snapshot 'tb_top_capture_filters_behav' loaded.
 INFO: [USF-XSim-97] XSim simulation ran for 1000ns
 launch_simulation: Time (s): cpu = 00:00:03 ; elapsed = 00:00:07 . Memory (MB): peak = 3368.684 ; gain = 0.000
+close_sim
+INFO: [Simtcl 6-16] Simulation closed
+exit
+INFO: [Common 17-206] Exiting Vivado at Wed May  6 18:08:15 2026...
