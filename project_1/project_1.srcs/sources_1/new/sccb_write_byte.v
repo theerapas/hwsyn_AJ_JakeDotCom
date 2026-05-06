@@ -10,7 +10,7 @@ module sccb_write_byte (
     output reg  busy = 1'b0,
     output reg  done = 1'b0
 );
-    localparam DIV = 500; // ~100kHz from 100MHz
+    localparam DIV = 2000; // ~25kHz from 100MHz; safer with weak/internal pullups
 
     reg [15:0] divcnt = 0;
     reg scl = 1'b1;
@@ -34,7 +34,7 @@ module sccb_write_byte (
     reg sda_out = 1'b1;
     reg sda_oe  = 1'b1;
     assign sioc = scl;
-    assign siod = sda_oe ? sda_out : 1'bz;
+    assign siod = (sda_oe && !sda_out) ? 1'b0 : 1'bz;
 
     reg [5:0] bitcnt = 0;
     reg [26:0] shreg = 27'h0;
@@ -43,8 +43,9 @@ module sccb_write_byte (
     localparam I_START = 3'd1;
     localparam I_BITL  = 3'd2;
     localparam I_BITH  = 3'd3;
-    localparam I_STOP1 = 3'd4;
-    localparam I_STOP2 = 3'd5;
+    localparam I_STOP0 = 3'd4;
+    localparam I_STOP1 = 3'd5;
+    localparam I_STOP2 = 3'd6;
 
     reg [2:0] state = I_IDLE;
 
@@ -94,16 +95,23 @@ module sccb_write_byte (
                         scl <= 1'b1;
                         shreg <= {shreg[25:0],1'b1};
                         if (bitcnt == 0)
-                            state <= I_STOP1;
+                            state <= I_STOP0;
                         else begin
                             bitcnt <= bitcnt - 1'd1;
                             state <= I_BITL;
                         end
                     end
 
-                    I_STOP1: begin
+                    I_STOP0: begin
                         sda_oe <= 1'b1;
                         scl <= 1'b0;
+                        sda_out <= 1'b0;
+                        state <= I_STOP1;
+                    end
+
+                    I_STOP1: begin
+                        sda_oe <= 1'b1;
+                        scl <= 1'b1;
                         sda_out <= 1'b0;
                         state <= I_STOP2;
                     end

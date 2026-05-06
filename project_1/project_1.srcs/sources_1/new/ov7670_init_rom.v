@@ -12,13 +12,13 @@ module ov7670_init_rom (
 
             // Register sequence copied from the local example project's
             // ov7670_registers.v, with only COM17 made switch-selectable.
-            8'h04: data = 16'h1204;
+            8'h04: data = colorbar ? 16'h1206 : 16'h1204;
             8'h05: data = 16'h1100;
             8'h06: data = 16'h0C00;
             8'h07: data = 16'h3E00;
             8'h08: data = 16'h8C00;
             8'h09: data = 16'h0400;
-            8'h0A: data = 16'h4010;
+            8'h0A: data = 16'h40D0;
             8'h0B: data = 16'h3A04;
             8'h0C: data = 16'h1438;
             8'h0D: data = 16'h4FB3;
@@ -66,9 +66,13 @@ module ov7670_init_rom (
             8'h37: data = 16'hB20E;
             8'h38: data = 16'hB382;
             8'h39: data = 16'hB80A;
-            8'h3A: data = colorbar ? 16'h4208 : 16'h4200; // COM17 sensor color bars
+            8'h3A: data = colorbar ? 16'h4208 : 16'h4200; // COM17 DSP color bars
+            8'h3B: data = 16'h13E7; // COM8: enable AGC/AWB/AEC
+            8'h3C: data = 16'h4108; // COM16: AWB gain enable
+            8'h3D: data = 16'h6F9F; // AWB control
+            8'h3E: data = 16'h6A40; // green/red channel balance helper
 
-            8'h3B: data = 16'hFFFF;
+            8'h3F: data = 16'hFFFF;
             default: data = 16'hFFFF;
         endcase
     end

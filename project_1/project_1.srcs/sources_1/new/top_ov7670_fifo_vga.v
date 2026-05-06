@@ -30,7 +30,6 @@ module top_ov7670_fifo_vga (
     wire clk25 = div4[1];
 
     assign cam_xclk  = clk25;
-    assign cam_reset = 1'b1;
     assign cam_pwdn  = 1'b0;
 
     wire cam_init_done;
@@ -38,7 +37,8 @@ module top_ov7670_fifo_vga (
     ov7670_init_controller init_u (
         .clk       (CLK100MHZ),
         .reset     (1'b0),
-        .colorbar  (1'b0),
+        .colorbar  (sw[5]),
+        .camera_reset (cam_reset),
         .sioc      (cam_sioc),
         .siod      (cam_siod),
         .init_done (cam_init_done)
@@ -88,7 +88,7 @@ module top_ov7670_fifo_vga (
     always @(negedge cam_pclk_buf) begin
         latched_vsync <= cam_vsync;
         latched_href <= cam_href;
-        latched_d <= sw[5] ? reverse8(cam_d) : cam_d;
+        latched_d <= cam_d;
     end
 
     wire [8:0] cap_dst_x = cap_x[9:1];
@@ -162,16 +162,10 @@ module top_ov7670_fifo_vga (
         ({9'd0, src_y} << 8) + ({9'd0, src_y} << 6) + {8'd0, src_x};
 
     reg [11:0] camera_rgb = 12'h000;
+    reg [11:0] balanced_rgb = 12'h000;
     reg [11:0] filtered_rgb = 12'h000;
     reg [11:0] test_rgb = 12'h000;
     reg [11:0] live_rgb = 12'h000;
-
-    function [7:0] reverse8;
-        input [7:0] value;
-        begin
-            reverse8 = {value[0], value[1], value[2], value[3], value[4], value[5], value[6], value[7]};
-        end
-    endfunction
 
     function [11:0] rgb565_to_rgb444;
         input [7:0] hi;
@@ -254,6 +248,44 @@ module top_ov7670_fifo_vga (
         end
     endfunction
 
+    function [3:0] sub_sat4;
+        input [3:0] value;
+        input [3:0] amount;
+        begin
+            sub_sat4 = (value > amount) ? (value - amount) : 4'h0;
+        end
+    endfunction
+
+    function [11:0] color_balance;
+        input [11:0] rgb;
+        reg [3:0] r;
+        reg [3:0] g;
+        reg [3:0] b;
+        reg [3:0] max_ch;
+        reg [5:0] sum_ch;
+        begin
+            r = rgb[11:8];
+            g = rgb[7:4];
+            b = rgb[3:0];
+            max_ch = (r > g) ? ((r > b) ? r : b) : ((g > b) ? g : b);
+            sum_ch = {2'b00, r} + {2'b00, g} + {2'b00, b};
+
+            // Clamp chroma speckles near black before color balancing.
+            if ((max_ch < 4'h3) || (sum_ch < 6'd8)) begin
+                color_balance = 12'h000;
+            end else begin
+                // The OV7670 tends to leave a red pedestal in shadows on this setup.
+                if (max_ch < 4'h5)
+                    r = sub_sat4(r, 4'h2);
+                else
+                    r = sub_sat4(r, 4'h1);
+
+                g = sub_sat4(g, 4'h1);
+                color_balance = {r, g, b};
+            end
+        end
+    endfunction
+
     always @(posedge clk25) begin
         if (sx < 80)       test_rgb <= 12'hF00;
         else if (sx < 160) test_rgb <= 12'h0F0;
@@ -272,9 +304,11 @@ module top_ov7670_fifo_vga (
 
         if (active_video && frame_ready) begin
             camera_rgb <= framebuffer[rd_addr];
-            filtered_rgb <= apply_filter(camera_rgb, sw[4:2]);
+            balanced_rgb <= sw[5] ? camera_rgb : color_balance(camera_rgb);
+            filtered_rgb <= apply_filter(balanced_rgb, sw[4:2]);
         end else begin
             camera_rgb <= 12'h000;
+            balanced_rgb <= 12'h000;
             filtered_rgb <= 12'h000;
         end
     end

@@ -2,13 +2,12 @@ module ov7670_init_controller (
     input  wire clk,
     input  wire reset,
     input  wire colorbar,
+    output reg  camera_reset = 1'b0,
     output wire sioc,
     inout  wire siod,
     output reg  init_done = 1'b0
 );
-    localparam CLK_DIV = 500; // 100MHz / (2*500) = 100kHz-ish SCCB bit timing
-
-    reg [15:0] wait_ctr = 16'd0;
+    reg [19:0] wait_ctr = 20'd0;
     reg start_tx = 1'b0;
     reg [7:0] tx_reg_addr = 8'h00;
     reg [7:0] tx_reg_data = 8'h00;
@@ -18,10 +17,13 @@ module ov7670_init_controller (
     reg [7:0] rom_addr = 8'd0;
     wire [15:0] rom_word;
     reg colorbar_d = 1'b0;
+    reg active_colorbar = 1'b0;
+    reg colorbar_meta = 1'b0;
+    reg colorbar_sync = 1'b0;
 
     ov7670_init_rom rom_u (
         .addr     (rom_addr),
-        .colorbar (colorbar),
+        .colorbar (active_colorbar),
         .data     (rom_word)
     );
 
@@ -38,34 +40,54 @@ module ov7670_init_controller (
         .done        (tx_done)
     );
 
-    localparam S_WAIT  = 3'd0;
-    localparam S_LOAD  = 3'd1;
-    localparam S_START = 3'd2;
-    localparam S_NEXT  = 3'd3;
-    localparam S_DONE  = 3'd4;
+    localparam S_RESET = 3'd0;
+    localparam S_WAIT  = 3'd1;
+    localparam S_LOAD  = 3'd2;
+    localparam S_START = 3'd3;
+    localparam S_NEXT  = 3'd4;
+    localparam S_DONE  = 3'd5;
 
-    reg [2:0] state = S_WAIT;
+    reg [2:0] state = S_RESET;
 
     always @(posedge clk) begin
+        colorbar_meta <= colorbar;
+        colorbar_sync <= colorbar_meta;
+
         if (reset) begin
-            state <= S_WAIT;
+            state <= S_RESET;
             wait_ctr <= 0;
             rom_addr <= 0;
             start_tx <= 0;
             init_done <= 0;
-            colorbar_d <= colorbar;
+            camera_reset <= 1'b0;
+            active_colorbar <= colorbar_sync;
+            colorbar_d <= colorbar_sync;
         end else begin
             start_tx <= 0;
 
-            if (init_done && (colorbar != colorbar_d)) begin
-                state <= S_WAIT;
+            if (init_done && (colorbar_sync != colorbar_d)) begin
+                state <= S_RESET;
                 wait_ctr <= 0;
                 rom_addr <= 0;
                 init_done <= 0;
-                colorbar_d <= colorbar;
+                camera_reset <= 1'b0;
+                active_colorbar <= colorbar_sync;
+                colorbar_d <= colorbar_sync;
             end else case (state)
+                S_RESET: begin
+                    camera_reset <= 1'b0;
+                    if (wait_ctr < 20'd200000) begin
+                        wait_ctr <= wait_ctr + 1'd1;
+                    end else begin
+                        camera_reset <= 1'b1;
+                        wait_ctr <= 0;
+                        state <= S_WAIT;
+                    end
+                end
+
                 S_WAIT: begin
-                    if (wait_ctr < 16'd50000) begin
+                    camera_reset <= 1'b1;
+                    if (wait_ctr < 20'd200000) begin
                         wait_ctr <= wait_ctr + 1'd1; // initial settle
                     end else begin
                         state <= S_LOAD;
