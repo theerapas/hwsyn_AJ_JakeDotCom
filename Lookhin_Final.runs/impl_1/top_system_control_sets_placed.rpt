@@ -1,0 +1,95 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2023.2 (win64) Build 4029153 Fri Oct 13 20:14:34 MDT 2023
+| Date         : Wed May  6 15:13:13 2026
+| Host         : NIHKOOL running 64-bit major release  (build 9200)
+| Command      : report_control_sets -verbose -file top_system_control_sets_placed.rpt
+| Design       : top_system
+| Device       : xc7a35t
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Control Set Information
+
+Table of Contents
+-----------------
+1. Summary
+2. Histogram
+3. Flip-Flop Distribution
+4. Detailed Control Set Information
+
+1. Summary
+----------
+
++----------------------------------------------------------+-------+
+|                          Status                          | Count |
++----------------------------------------------------------+-------+
+| Total control sets                                       |    17 |
+|    Minimum number of control sets                        |    17 |
+|    Addition due to synthesis replication                 |     0 |
+|    Addition due to physical synthesis replication        |     0 |
+| Unused register locations in slices containing registers |    64 |
++----------------------------------------------------------+-------+
+* Control sets can be merged at opt_design using control_set_merge or merge_equivalent_drivers
+** Run report_qor_suggestions for automated merging and remapping suggestions
+
+
+2. Histogram
+------------
+
++--------------------+-------+
+|       Fanout       | Count |
++--------------------+-------+
+| Total control sets |    17 |
+| >= 0 to < 4        |     3 |
+| >= 4 to < 6        |     4 |
+| >= 6 to < 8        |     1 |
+| >= 8 to < 10       |     3 |
+| >= 10 to < 12      |     1 |
+| >= 12 to < 14      |     0 |
+| >= 14 to < 16      |     0 |
+| >= 16              |     5 |
++--------------------+-------+
+* Control sets can be remapped at either synth_design or opt_design
+
+
+3. Flip-Flop Distribution
+-------------------------
+
++--------------+-----------------------+------------------------+-----------------+--------------+
+| Clock Enable | Synchronous Set/Reset | Asynchronous Set/Reset | Total Registers | Total Slices |
++--------------+-----------------------+------------------------+-----------------+--------------+
+| No           | No                    | No                     |              34 |           17 |
+| No           | No                    | Yes                    |               0 |            0 |
+| No           | Yes                   | No                     |              27 |           10 |
+| Yes          | No                    | No                     |              62 |           25 |
+| Yes          | No                    | Yes                    |               0 |            0 |
+| Yes          | Yes                   | No                     |              53 |           15 |
++--------------+-----------------------+------------------------+-----------------+--------------+
+
+
+4. Detailed Control Set Information
+-----------------------------------
+
++--------------------------------------+-------------------------------------------+-----------------------------+------------------+----------------+--------------+
+|             Clock Signal             |               Enable Signal               |       Set/Reset Signal      | Slice Load Count | Bel Load Count | Bels / Slice |
++--------------------------------------+-------------------------------------------+-----------------------------+------------------+----------------+--------------+
+|  FSM_sequential_state_reg[3]_i_3_n_0 | sccb_inst/scl_reg_i_1_n_0                 |                             |                1 |              1 |         1.00 |
+|  clk_100mhz_IBUF_BUFG                |                                           |                             |                1 |              2 |         2.00 |
+|  PCLK_IBUF_BUFG                      |                                           |                             |                2 |              2 |         1.00 |
+|  FSM_sequential_state_reg[3]_i_3_n_0 | sccb_inst/FSM_sequential_state[3]_i_1_n_0 |                             |                1 |              4 |         4.00 |
+|  FSM_sequential_state_reg[3]_i_3_n_0 | sccb_inst/bit_counter                     |                             |                1 |              4 |         4.00 |
+|  FSM_sequential_state_reg[3]_i_3_n_0 | sccb_inst/tx_data                         |                             |                2 |              4 |         2.00 |
+|  FSM_sequential_state_reg[3]_i_3_n_0 | sccb_inst/current_reg                     |                             |                3 |              5 |         1.67 |
+|  FSM_sequential_state_reg[3]_i_3_n_0 |                                           |                             |                4 |              7 |         1.75 |
+|  PCLK_IBUF_BUFG                      | capture_inst/latched_pixel[15]            |                             |                4 |              8 |         2.00 |
+|  XCLK_OBUF_BUFG                      |                                           | sccb_inst/sccb_clk          |                3 |              8 |         2.67 |
+|  XCLK_OBUF_BUFG                      |                                           | vga_inst/v_count            |                4 |              9 |         2.25 |
+|  XCLK_OBUF_BUFG                      |                                           | vga_inst/h_count[9]_i_1_n_0 |                3 |             10 |         3.33 |
+|  PCLK_IBUF_BUFG                      | capture_inst/dout[15]_i_1_n_0             |                             |                8 |             16 |         2.00 |
+|  XCLK_OBUF_BUFG                      | vga_inst/v_count                          | vga_inst/v_count[9]_i_1_n_0 |                7 |             19 |         2.71 |
+|  FSM_sequential_state_reg[3]_i_3_n_0 | sccb_inst/delay_counter                   |                             |                5 |             20 |         4.00 |
+|  XCLK_OBUF_BUFG                      |                                           |                             |               10 |             23 |         2.30 |
+|  PCLK_IBUF_BUFG                      | capture_inst/addr[16]_i_1_n_0             | VSYNC_IBUF                  |                8 |             34 |         4.25 |
++--------------------------------------+-------------------------------------------+-----------------------------+------------------+----------------+--------------+
+
+

@@ -1,0 +1,464 @@
+
+*** Running vivado
+    with args -log top_system.vds -m64 -product Vivado -mode batch -messageDb vivado.pb -notrace -source top_system.tcl
+
+
+ECHO is off.
+ECHO is off.
+
+****** Vivado v2023.2 (64-bit)
+  **** SW Build 4029153 on Fri Oct 13 20:14:34 MDT 2023
+  **** IP Build 4028589 on Sat Oct 14 00:45:43 MDT 2023
+  **** SharedData Build 4025554 on Tue Oct 10 17:18:54 MDT 2023
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source top_system.tcl -notrace
+create_project: Time (s): cpu = 00:00:06 ; elapsed = 00:00:07 . Memory (MB): peak = 472.934 ; gain = 175.781
+Command: read_checkpoint -auto_incremental -incremental C:/Project_HW/Lookhin_Final/Lookhin_Final.srcs/utils_1/imports/synth_1/top_system.dcp
+INFO: [Vivado 12-5825] Read reference checkpoint from C:/Project_HW/Lookhin_Final/Lookhin_Final.srcs/utils_1/imports/synth_1/top_system.dcp for incremental synthesis
+INFO: [Vivado 12-7989] Please ensure there are no constraint changes
+Command: synth_design -top top_system -part xc7a35tcpg236-1
+Starting synth_design
+Attempting to get a license for feature 'Synthesis' and/or device 'xc7a35t'
+INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7a35t'
+INFO: [Device 21-403] Loading part xc7a35tcpg236-1
+INFO: [Designutils 20-5440] No compile time benefit to using incremental synthesis; A full resynthesis will be run
+INFO: [Designutils 20-4379] Flow is switching to default flow due to incremental criteria not met. If you would like to alter this behaviour and have the flow terminate instead, please set the following parameter config_implementation {autoIncr.Synth.RejectBehavior Terminate}
+INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 2 processes.
+INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
+INFO: [Synth 8-7075] Helper process launched with PID 25672
+---------------------------------------------------------------------------------
+Starting RTL Elaboration : Time (s): cpu = 00:00:04 ; elapsed = 00:00:05 . Memory (MB): peak = 1319.414 ; gain = 439.227
+---------------------------------------------------------------------------------
+INFO: [Synth 8-6157] synthesizing module 'top_system' [C:/Project_HW/Lookhin_Final/Lookhin_Final.srcs/sources_1/new/top_system.v:1]
+INFO: [Synth 8-6157] synthesizing module 'camera_capture' [C:/Project_HW/Lookhin_Final/Lookhin_Final.srcs/sources_1/new/camera_capture.v:3]
+INFO: [Synth 8-6155] done synthesizing module 'camera_capture' (0#1) [C:/Project_HW/Lookhin_Final/Lookhin_Final.srcs/sources_1/new/camera_capture.v:3]
+INFO: [Synth 8-6157] synthesizing module 'blk_mem_gen_0' [C:/Project_HW/Lookhin_Final/Lookhin_Final.runs/synth_1/.Xil/Vivado-23060-NIHKOOL/realtime/blk_mem_gen_0_stub.v:6]
+INFO: [Synth 8-6155] done synthesizing module 'blk_mem_gen_0' (0#1) [C:/Project_HW/Lookhin_Final/Lookhin_Final.runs/synth_1/.Xil/Vivado-23060-NIHKOOL/realtime/blk_mem_gen_0_stub.v:6]
+INFO: [Synth 8-6157] synthesizing module 'image_processor' [C:/Project_HW/Lookhin_Final/Lookhin_Final.srcs/sources_1/new/image_processor.v:3]
+INFO: [Synth 8-226] default block is never used [C:/Project_HW/Lookhin_Final/Lookhin_Final.srcs/sources_1/new/image_processor.v:40]
+INFO: [Synth 8-6155] done synthesizing module 'image_processor' (0#1) [C:/Project_HW/Lookhin_Final/Lookhin_Final.srcs/sources_1/new/image_processor.v:3]
+INFO: [Synth 8-6157] synthesizing module 'vga_controller' [C:/Project_HW/Lookhin_Final/Lookhin_Final.srcs/sources_1/new/vga_controller.v:3]
+INFO: [Synth 8-6155] done synthesizing module 'vga_controller' (0#1) [C:/Project_HW/Lookhin_Final/Lookhin_Final.srcs/sources_1/new/vga_controller.v:3]
+INFO: [Synth 8-6157] synthesizing module 'sccb_controller' [C:/Project_HW/Lookhin_Final/Lookhin_Final.srcs/sources_1/new/sccb_controller.v:3]
+INFO: [Synth 8-155] case statement is not full and has no default [C:/Project_HW/Lookhin_Final/Lookhin_Final.srcs/sources_1/new/sccb_controller.v:60]
+INFO: [Synth 8-6155] done synthesizing module 'sccb_controller' (0#1) [C:/Project_HW/Lookhin_Final/Lookhin_Final.srcs/sources_1/new/sccb_controller.v:3]
+INFO: [Synth 8-6155] done synthesizing module 'top_system' (0#1) [C:/Project_HW/Lookhin_Final/Lookhin_Final.srcs/sources_1/new/top_system.v:1]
+WARNING: [Synth 8-3917] design top_system has port PWDN driven by constant 0
+WARNING: [Synth 8-3917] design top_system has port RST driven by constant 1
+WARNING: [Synth 8-7129] Port pixel_in[11] in module vga_controller is either unconnected or has no load
+WARNING: [Synth 8-7129] Port pixel_in[6] in module vga_controller is either unconnected or has no load
+WARNING: [Synth 8-7129] Port pixel_in[5] in module vga_controller is either unconnected or has no load
+WARNING: [Synth 8-7129] Port pixel_in[0] in module vga_controller is either unconnected or has no load
+WARNING: [Synth 8-7129] Port clk in module image_processor is either unconnected or has no load
+---------------------------------------------------------------------------------
+Finished RTL Elaboration : Time (s): cpu = 00:00:05 ; elapsed = 00:00:06 . Memory (MB): peak = 1431.832 ; gain = 551.645
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:05 ; elapsed = 00:00:06 . Memory (MB): peak = 1431.832 ; gain = 551.645
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:05 ; elapsed = 00:00:06 . Memory (MB): peak = 1431.832 ; gain = 551.645
+---------------------------------------------------------------------------------
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.003 . Memory (MB): peak = 1431.832 ; gain = 0.000
+INFO: [Project 1-570] Preparing netlist for logic optimization
+
+Processing XDC Constraints
+Initializing timing engine
+Parsing XDC File [c:/Project_HW/Lookhin_Final/Lookhin_Final.gen/sources_1/ip/blk_mem_gen_0/blk_mem_gen_0/blk_mem_gen_0_in_context.xdc] for cell 'frame_buffer'
+Finished Parsing XDC File [c:/Project_HW/Lookhin_Final/Lookhin_Final.gen/sources_1/ip/blk_mem_gen_0/blk_mem_gen_0/blk_mem_gen_0_in_context.xdc] for cell 'frame_buffer'
+Parsing XDC File [C:/Digilent_xdc_master/digilent-xdc-master/Basys-3-Master.xdc]
+WARNING: [Vivado 12-507] No nets matched 'PCLK_IBUF'. [C:/Digilent_xdc_master/digilent-xdc-master/Basys-3-Master.xdc:34]
+Finished Parsing XDC File [C:/Digilent_xdc_master/digilent-xdc-master/Basys-3-Master.xdc]
+WARNING: [Project 1-498] One or more constraints failed evaluation while reading constraint file [C:/Digilent_xdc_master/digilent-xdc-master/Basys-3-Master.xdc] and the design contains unresolved black boxes. These constraints will be read post-synthesis (as long as their source constraint file is marked as used_in_implementation) and should be applied correctly then. You should review the constraints listed in the file [.Xil/top_system_propImpl.xdc] and check the run log file to verify that these constraints were correctly applied.
+INFO: [Project 1-236] Implementation specific constraints were found while reading constraint file [C:/Digilent_xdc_master/digilent-xdc-master/Basys-3-Master.xdc]. These constraints will be ignored for synthesis but will be used in implementation. Impacted constraints are listed in the file [.Xil/top_system_propImpl.xdc].
+Resolution: To avoid this warning, move constraints listed in [.Xil/top_system_propImpl.xdc] to another XDC file and exclude this new file from synthesis with the used_in_synthesis property (File Properties dialog in GUI) and re-run elaboration/synthesis.
+Completed Processing XDC Constraints
+
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 1440.586 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+No Unisim elements were transformed.
+
+The system cannot find the path specified.
+Constraint Validation Runtime : Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.002 . Memory (MB): peak = 1440.586 ; gain = 0.000
+INFO: [Designutils 20-5440] No compile time benefit to using incremental synthesis; A full resynthesis will be run
+INFO: [Designutils 20-4379] Flow is switching to default flow due to incremental criteria not met. If you would like to alter this behaviour and have the flow terminate instead, please set the following parameter config_implementation {autoIncr.Synth.RejectBehavior Terminate}
+---------------------------------------------------------------------------------
+Finished Constraint Validation : Time (s): cpu = 00:00:10 ; elapsed = 00:00:11 . Memory (MB): peak = 1440.586 ; gain = 560.398
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Loading Part and Timing Information
+---------------------------------------------------------------------------------
+Loading part: xc7a35tcpg236-1
+---------------------------------------------------------------------------------
+Finished Loading Part and Timing Information : Time (s): cpu = 00:00:10 ; elapsed = 00:00:11 . Memory (MB): peak = 1440.586 ; gain = 560.398
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Applying 'set_property' XDC Constraints
+---------------------------------------------------------------------------------
+Applied set_property KEEP_HIERARCHY = SOFT for frame_buffer. (constraint file  auto generated constraint).
+---------------------------------------------------------------------------------
+Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:10 ; elapsed = 00:00:12 . Memory (MB): peak = 1440.586 ; gain = 560.398
+---------------------------------------------------------------------------------
+INFO: [Synth 8-802] inferred FSM for state register 'state_reg' in module 'sccb_controller'
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+                 iSTATE0 |                             0000 |                           000000
+                  iSTATE |                             0001 |                           000001
+                 iSTATE7 |                             0010 |                           000010
+                 iSTATE5 |                             0011 |                           000011
+                 iSTATE6 |                             0100 |                           000100
+                 iSTATE4 |                             0101 |                           000101
+                 iSTATE2 |                             0110 |                           000110
+                 iSTATE1 |                             0111 |                           000111
+                 iSTATE3 |                             1000 |                           001000
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'state_reg' using encoding 'sequential' in module 'sccb_controller'
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:11 ; elapsed = 00:00:12 . Memory (MB): peak = 1440.586 ; gain = 560.398
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start RTL Component Statistics 
+---------------------------------------------------------------------------------
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input   10 Bit       Adders := 2     
+	   3 Input    8 Bit       Adders := 1     
+	   2 Input    8 Bit       Adders := 2     
+	   2 Input    4 Bit       Adders := 1     
+	   2 Input    2 Bit       Adders := 1     
++---Registers : 
+	               17 Bit    Registers := 1     
+	               16 Bit    Registers := 3     
+	               10 Bit    Registers := 2     
+	                9 Bit    Registers := 1     
+	                8 Bit    Registers := 3     
+	                4 Bit    Registers := 4     
+	                2 Bit    Registers := 1     
+	                1 Bit    Registers := 6     
++---Muxes : 
+	   4 Input   16 Bit        Muxes := 3     
+	   9 Input    8 Bit        Muxes := 1     
+	   2 Input    4 Bit        Muxes := 6     
+	   9 Input    4 Bit        Muxes := 2     
+	   2 Input    1 Bit        Muxes := 4     
+	   9 Input    1 Bit        Muxes := 12    
+---------------------------------------------------------------------------------
+Finished RTL Component Statistics 
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Part Resource Summary
+---------------------------------------------------------------------------------
+Part Resources:
+DSPs: 90 (col length:60)
+BRAMs: 100 (col length: RAMB18 60 RAMB36 30)
+---------------------------------------------------------------------------------
+Finished Part Resource Summary
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Cross Boundary and Area Optimization
+---------------------------------------------------------------------------------
+WARNING: [Synth 8-7080] Parallel synthesis criteria is not met
+WARNING: [Synth 8-3917] design top_system has port PWDN driven by constant 0
+WARNING: [Synth 8-3917] design top_system has port RST driven by constant 1
+---------------------------------------------------------------------------------
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:00:12 ; elapsed = 00:00:14 . Memory (MB): peak = 1440.586 ; gain = 560.398
+---------------------------------------------------------------------------------
+
+*** Running vivado
+    with args -log top_system.vds -m64 -product Vivado -mode batch -messageDb vivado.pb -notrace -source top_system.tcl
+
+
+ECHO is off.
+ECHO is off.
+
+****** Vivado v2023.2 (64-bit)
+  **** SW Build 4029153 on Fri Oct 13 20:14:34 MDT 2023
+  **** IP Build 4028589 on Sat Oct 14 00:45:43 MDT 2023
+  **** SharedData Build 4025554 on Tue Oct 10 17:18:54 MDT 2023
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source top_system.tcl -notrace
+create_project: Time (s): cpu = 00:00:05 ; elapsed = 00:00:06 . Memory (MB): peak = 473.266 ; gain = 180.793
+Command: read_checkpoint -auto_incremental -incremental C:/Project_HW/Lookhin_Final/Lookhin_Final.srcs/utils_1/imports/synth_1/top_system.dcp
+INFO: [Vivado 12-5825] Read reference checkpoint from C:/Project_HW/Lookhin_Final/Lookhin_Final.srcs/utils_1/imports/synth_1/top_system.dcp for incremental synthesis
+INFO: [Vivado 12-7989] Please ensure there are no constraint changes
+Command: synth_design -top top_system -part xc7a35tcpg236-1
+Starting synth_design
+Attempting to get a license for feature 'Synthesis' and/or device 'xc7a35t'
+INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7a35t'
+INFO: [Device 21-403] Loading part xc7a35tcpg236-1
+INFO: [Designutils 20-5440] No compile time benefit to using incremental synthesis; A full resynthesis will be run
+INFO: [Designutils 20-4379] Flow is switching to default flow due to incremental criteria not met. If you would like to alter this behaviour and have the flow terminate instead, please set the following parameter config_implementation {autoIncr.Synth.RejectBehavior Terminate}
+INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 2 processes.
+INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
+INFO: [Synth 8-7075] Helper process launched with PID 21404
+---------------------------------------------------------------------------------
+Starting RTL Elaboration : Time (s): cpu = 00:00:03 ; elapsed = 00:00:03 . Memory (MB): peak = 1320.375 ; gain = 440.156
+---------------------------------------------------------------------------------
+INFO: [Synth 8-6157] synthesizing module 'top_system' [C:/Project_HW/Lookhin_Final/Lookhin_Final.srcs/sources_1/new/top_system.v:1]
+INFO: [Synth 8-6157] synthesizing module 'camera_capture' [C:/Project_HW/Lookhin_Final/Lookhin_Final.srcs/sources_1/new/camera_capture.v:3]
+INFO: [Synth 8-6155] done synthesizing module 'camera_capture' (0#1) [C:/Project_HW/Lookhin_Final/Lookhin_Final.srcs/sources_1/new/camera_capture.v:3]
+INFO: [Synth 8-6157] synthesizing module 'blk_mem_gen_0' [C:/Project_HW/Lookhin_Final/Lookhin_Final.runs/synth_1/.Xil/Vivado-2824-NIHKOOL/realtime/blk_mem_gen_0_stub.v:6]
+INFO: [Synth 8-6155] done synthesizing module 'blk_mem_gen_0' (0#1) [C:/Project_HW/Lookhin_Final/Lookhin_Final.runs/synth_1/.Xil/Vivado-2824-NIHKOOL/realtime/blk_mem_gen_0_stub.v:6]
+INFO: [Synth 8-6157] synthesizing module 'image_processor' [C:/Project_HW/Lookhin_Final/Lookhin_Final.srcs/sources_1/new/image_processor.v:3]
+INFO: [Synth 8-226] default block is never used [C:/Project_HW/Lookhin_Final/Lookhin_Final.srcs/sources_1/new/image_processor.v:40]
+INFO: [Synth 8-6155] done synthesizing module 'image_processor' (0#1) [C:/Project_HW/Lookhin_Final/Lookhin_Final.srcs/sources_1/new/image_processor.v:3]
+INFO: [Synth 8-6157] synthesizing module 'vga_controller' [C:/Project_HW/Lookhin_Final/Lookhin_Final.srcs/sources_1/new/vga_controller.v:3]
+INFO: [Synth 8-6155] done synthesizing module 'vga_controller' (0#1) [C:/Project_HW/Lookhin_Final/Lookhin_Final.srcs/sources_1/new/vga_controller.v:3]
+INFO: [Synth 8-6157] synthesizing module 'sccb_controller' [C:/Project_HW/Lookhin_Final/Lookhin_Final.srcs/sources_1/new/sccb_controller.v:3]
+INFO: [Synth 8-155] case statement is not full and has no default [C:/Project_HW/Lookhin_Final/Lookhin_Final.srcs/sources_1/new/sccb_controller.v:60]
+INFO: [Synth 8-6155] done synthesizing module 'sccb_controller' (0#1) [C:/Project_HW/Lookhin_Final/Lookhin_Final.srcs/sources_1/new/sccb_controller.v:3]
+INFO: [Synth 8-6155] done synthesizing module 'top_system' (0#1) [C:/Project_HW/Lookhin_Final/Lookhin_Final.srcs/sources_1/new/top_system.v:1]
+WARNING: [Synth 8-3917] design top_system has port PWDN driven by constant 0
+WARNING: [Synth 8-3917] design top_system has port RST driven by constant 1
+WARNING: [Synth 8-7129] Port pixel_in[11] in module vga_controller is either unconnected or has no load
+WARNING: [Synth 8-7129] Port pixel_in[6] in module vga_controller is either unconnected or has no load
+WARNING: [Synth 8-7129] Port pixel_in[5] in module vga_controller is either unconnected or has no load
+WARNING: [Synth 8-7129] Port pixel_in[0] in module vga_controller is either unconnected or has no load
+WARNING: [Synth 8-7129] Port clk in module image_processor is either unconnected or has no load
+---------------------------------------------------------------------------------
+Finished RTL Elaboration : Time (s): cpu = 00:00:04 ; elapsed = 00:00:05 . Memory (MB): peak = 1433.988 ; gain = 553.770
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:04 ; elapsed = 00:00:05 . Memory (MB): peak = 1433.988 ; gain = 553.770
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:04 ; elapsed = 00:00:05 . Memory (MB): peak = 1433.988 ; gain = 553.770
+---------------------------------------------------------------------------------
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.002 . Memory (MB): peak = 1433.988 ; gain = 0.000
+INFO: [Project 1-570] Preparing netlist for logic optimization
+
+Processing XDC Constraints
+Initializing timing engine
+Parsing XDC File [c:/Project_HW/Lookhin_Final/Lookhin_Final.gen/sources_1/ip/blk_mem_gen_0/blk_mem_gen_0/blk_mem_gen_0_in_context.xdc] for cell 'frame_buffer'
+Finished Parsing XDC File [c:/Project_HW/Lookhin_Final/Lookhin_Final.gen/sources_1/ip/blk_mem_gen_0/blk_mem_gen_0/blk_mem_gen_0_in_context.xdc] for cell 'frame_buffer'
+Parsing XDC File [C:/Digilent_xdc_master/digilent-xdc-master/Basys-3-Master.xdc]
+WARNING: [Vivado 12-507] No nets matched 'PCLK_IBUF'. [C:/Digilent_xdc_master/digilent-xdc-master/Basys-3-Master.xdc:34]
+Finished Parsing XDC File [C:/Digilent_xdc_master/digilent-xdc-master/Basys-3-Master.xdc]
+WARNING: [Project 1-498] One or more constraints failed evaluation while reading constraint file [C:/Digilent_xdc_master/digilent-xdc-master/Basys-3-Master.xdc] and the design contains unresolved black boxes. These constraints will be read post-synthesis (as long as their source constraint file is marked as used_in_implementation) and should be applied correctly then. You should review the constraints listed in the file [.Xil/top_system_propImpl.xdc] and check the run log file to verify that these constraints were correctly applied.
+INFO: [Project 1-236] Implementation specific constraints were found while reading constraint file [C:/Digilent_xdc_master/digilent-xdc-master/Basys-3-Master.xdc]. These constraints will be ignored for synthesis but will be used in implementation. Impacted constraints are listed in the file [.Xil/top_system_propImpl.xdc].
+Resolution: To avoid this warning, move constraints listed in [.Xil/top_system_propImpl.xdc] to another XDC file and exclude this new file from synthesis with the used_in_synthesis property (File Properties dialog in GUI) and re-run elaboration/synthesis.
+Completed Processing XDC Constraints
+
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 1460.344 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+No Unisim elements were transformed.
+
+The system cannot find the path specified.
+Constraint Validation Runtime : Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.003 . Memory (MB): peak = 1460.344 ; gain = 0.000
+INFO: [Designutils 20-5440] No compile time benefit to using incremental synthesis; A full resynthesis will be run
+INFO: [Designutils 20-4379] Flow is switching to default flow due to incremental criteria not met. If you would like to alter this behaviour and have the flow terminate instead, please set the following parameter config_implementation {autoIncr.Synth.RejectBehavior Terminate}
+---------------------------------------------------------------------------------
+Finished Constraint Validation : Time (s): cpu = 00:00:10 ; elapsed = 00:00:11 . Memory (MB): peak = 1460.344 ; gain = 580.125
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Loading Part and Timing Information
+---------------------------------------------------------------------------------
+Loading part: xc7a35tcpg236-1
+---------------------------------------------------------------------------------
+Finished Loading Part and Timing Information : Time (s): cpu = 00:00:10 ; elapsed = 00:00:11 . Memory (MB): peak = 1460.344 ; gain = 580.125
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Applying 'set_property' XDC Constraints
+---------------------------------------------------------------------------------
+Applied set_property KEEP_HIERARCHY = SOFT for frame_buffer. (constraint file  auto generated constraint).
+---------------------------------------------------------------------------------
+Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:10 ; elapsed = 00:00:11 . Memory (MB): peak = 1460.344 ; gain = 580.125
+---------------------------------------------------------------------------------
+INFO: [Synth 8-802] inferred FSM for state register 'state_reg' in module 'sccb_controller'
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+                 iSTATE0 |                             0000 |                           000000
+                  iSTATE |                             0001 |                           000001
+                 iSTATE7 |                             0010 |                           000010
+                 iSTATE5 |                             0011 |                           000011
+                 iSTATE6 |                             0100 |                           000100
+                 iSTATE4 |                             0101 |                           000101
+                 iSTATE2 |                             0110 |                           000110
+                 iSTATE1 |                             0111 |                           000111
+                 iSTATE3 |                             1000 |                           001000
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'state_reg' using encoding 'sequential' in module 'sccb_controller'
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:10 ; elapsed = 00:00:11 . Memory (MB): peak = 1460.344 ; gain = 580.125
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start RTL Component Statistics 
+---------------------------------------------------------------------------------
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input   10 Bit       Adders := 2     
+	   3 Input    8 Bit       Adders := 1     
+	   2 Input    8 Bit       Adders := 2     
+	   2 Input    4 Bit       Adders := 1     
+	   2 Input    2 Bit       Adders := 1     
++---Registers : 
+	               17 Bit    Registers := 1     
+	               16 Bit    Registers := 3     
+	               10 Bit    Registers := 2     
+	                9 Bit    Registers := 1     
+	                8 Bit    Registers := 3     
+	                4 Bit    Registers := 4     
+	                2 Bit    Registers := 1     
+	                1 Bit    Registers := 6     
++---Muxes : 
+	   4 Input   16 Bit        Muxes := 3     
+	   9 Input    8 Bit        Muxes := 1     
+	   2 Input    4 Bit        Muxes := 6     
+	   9 Input    4 Bit        Muxes := 2     
+	   2 Input    1 Bit        Muxes := 4     
+	   9 Input    1 Bit        Muxes := 12    
+---------------------------------------------------------------------------------
+Finished RTL Component Statistics 
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Part Resource Summary
+---------------------------------------------------------------------------------
+Part Resources:
+DSPs: 90 (col length:60)
+BRAMs: 100 (col length: RAMB18 60 RAMB36 30)
+---------------------------------------------------------------------------------
+Finished Part Resource Summary
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Cross Boundary and Area Optimization
+---------------------------------------------------------------------------------
+WARNING: [Synth 8-7080] Parallel synthesis criteria is not met
+WARNING: [Synth 8-3917] design top_system has port PWDN driven by constant 0
+WARNING: [Synth 8-3917] design top_system has port RST driven by constant 1
+---------------------------------------------------------------------------------
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:00:12 ; elapsed = 00:00:13 . Memory (MB): peak = 1460.344 ; gain = 580.125
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Applying XDC Timing Constraints
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Applying XDC Timing Constraints : Time (s): cpu = 00:00:17 ; elapsed = 00:00:19 . Memory (MB): peak = 1460.344 ; gain = 580.125
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Timing Optimization
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Timing Optimization : Time (s): cpu = 00:00:17 ; elapsed = 00:00:19 . Memory (MB): peak = 1460.344 ; gain = 580.125
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Technology Mapping
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Technology Mapping : Time (s): cpu = 00:00:18 ; elapsed = 00:00:19 . Memory (MB): peak = 1460.344 ; gain = 580.125
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished IO Insertion : Time (s): cpu = 00:00:21 ; elapsed = 00:00:23 . Memory (MB): peak = 1460.344 ; gain = 580.125
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Instances
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Instances : Time (s): cpu = 00:00:21 ; elapsed = 00:00:23 . Memory (MB): peak = 1460.344 ; gain = 580.125
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Rebuilding User Hierarchy
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:00:21 ; elapsed = 00:00:23 . Memory (MB): peak = 1460.344 ; gain = 580.125
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Ports
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Ports : Time (s): cpu = 00:00:21 ; elapsed = 00:00:23 . Memory (MB): peak = 1460.344 ; gain = 580.125
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:21 ; elapsed = 00:00:23 . Memory (MB): peak = 1460.344 ; gain = 580.125
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Nets
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Nets : Time (s): cpu = 00:00:21 ; elapsed = 00:00:23 . Memory (MB): peak = 1460.344 ; gain = 580.125
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Writing Synthesis Report
+---------------------------------------------------------------------------------
+
+Report BlackBoxes: 
++------+--------------+----------+
+|      |BlackBox name |Instances |
++------+--------------+----------+
+|1     |blk_mem_gen_0 |         1|
++------+--------------+----------+
+
+Report Cell Usage: 
++------+------------+------+
+|      |Cell        |Count |
++------+------------+------+
+|1     |blk_mem_gen |     1|
+|2     |BUFG        |     4|
+|3     |CARRY4      |    16|
+|4     |LUT1        |     7|
+|5     |LUT2        |    21|
+|6     |LUT3        |    20|
+|7     |LUT4        |    17|
+|8     |LUT5        |    43|
+|9     |LUT6        |    34|
+|10    |MUXF7       |     1|
+|11    |FDRE        |   166|
+|12    |IBUF        |    14|
+|13    |OBUF        |    18|
+|14    |OBUFT       |     1|
++------+------------+------+
+---------------------------------------------------------------------------------
+Finished Writing Synthesis Report : Time (s): cpu = 00:00:21 ; elapsed = 00:00:23 . Memory (MB): peak = 1460.344 ; gain = 580.125
+---------------------------------------------------------------------------------
+Synthesis finished with 0 errors, 0 critical warnings and 3 warnings.
+Synthesis Optimization Runtime : Time (s): cpu = 00:00:15 ; elapsed = 00:00:22 . Memory (MB): peak = 1460.344 ; gain = 553.770
+Synthesis Optimization Complete : Time (s): cpu = 00:00:21 ; elapsed = 00:00:23 . Memory (MB): peak = 1460.344 ; gain = 580.125
+INFO: [Project 1-571] Translating synthesized netlist
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.001 . Memory (MB): peak = 1460.344 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 17 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
+INFO: [Project 1-570] Preparing netlist for logic optimization
+INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 1464.461 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+No Unisim elements were transformed.
+
+The system cannot find the path specified.
+Synth Design complete | Checksum: df6c5be3
+INFO: [Common 17-83] Releasing license: Synthesis
+37 Infos, 12 Warnings, 0 Critical Warnings and 0 Errors encountered.
+synth_design completed successfully
+synth_design: Time (s): cpu = 00:00:24 ; elapsed = 00:00:26 . Memory (MB): peak = 1464.461 ; gain = 976.461
+Write ShapeDB Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.001 . Memory (MB): peak = 1464.461 ; gain = 0.000
+INFO: [Common 17-1381] The checkpoint 'C:/Project_HW/Lookhin_Final/Lookhin_Final.runs/synth_1/top_system.dcp' has been generated.
+INFO: [runtcl-4] Executing : report_utilization -file top_system_utilization_synth.rpt -pb top_system_utilization_synth.pb
+INFO: [Common 17-206] Exiting Vivado at Wed May  6 14:30:10 2026...
