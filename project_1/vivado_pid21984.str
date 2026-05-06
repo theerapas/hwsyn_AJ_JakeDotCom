@@ -2047,3 +2047,4 @@ dismissDialog("Program Device"); // bk (Program Device Progress)
 // Tcl Message: ERROR: [Labtoolstcl 44-513] HW Target shutdown. Closing target: localhost:3121/xilinx_tcf/Digilent/210183AA1313A 
 // TclEventType: HW_TARGET_NEEDS_CLOSE
 // TclEventType: HW_SERVER_UPDATE
+// HMemoryUtils.trashcanNow. Engine heap size: 1,149 MB. GUI used memory: 84 MB. Current time: 5/6/26, 12:14:43 PM ICT
