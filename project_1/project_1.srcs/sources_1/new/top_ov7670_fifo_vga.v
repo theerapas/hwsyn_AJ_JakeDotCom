@@ -140,7 +140,7 @@ module top_ov7670_fifo_vga (
                     byte_phase <= 2'd0;
                     if ((cap_x < 10'd640) && (cap_y < 9'd480)) begin
                         if (!cap_y[0] && (cap_dst_x < FRAME_WIDTH) && (cap_dst_y < FRAME_HEIGHT)) begin
-                            framebuffer[wr_addr] <= camera_word_to_rgb444(b0, b1, b2, latched_d, sw[7:6]);
+                            framebuffer[wr_addr] <= dark_clamp_rgb444(camera_word_to_rgb444(b0, b1, b2, latched_d, sw[7:6]));
                             if ((b0 != 8'h00) || (b1 != 8'h00) || (b2 != 8'h00) || (latched_d != 8'h00))
                                 pixel_seen <= 1'b1;
                         end
@@ -163,9 +163,6 @@ module top_ov7670_fifo_vga (
 
     reg [11:0] camera_rgb = 12'h000;
     reg [11:0] balanced_rgb = 12'h000;
-    reg [11:0] balanced_rgb_d1 = 12'h000;
-    reg [11:0] balanced_rgb_d2 = 12'h000;
-    reg [11:0] denoised_rgb = 12'h000;
     reg [11:0] filtered_rgb = 12'h000;
     reg [11:0] test_rgb = 12'h000;
     reg [11:0] live_rgb = 12'h000;
@@ -234,6 +231,16 @@ module top_ov7670_fifo_vga (
         end
     endfunction
 
+    function [11:0] dark_clamp_rgb444;
+        input [11:0] rgb;
+        begin
+            if ((rgb[11:8] < 4'h4) && (rgb[7:4] < 4'h4) && (rgb[3:0] < 4'h4))
+                dark_clamp_rgb444 = 12'h000;
+            else
+                dark_clamp_rgb444 = rgb;
+        end
+    endfunction
+
     function [11:0] apply_filter;
         input [11:0] rgb;
         input [2:0] mode;
@@ -289,33 +296,6 @@ module top_ov7670_fifo_vga (
         end
     endfunction
 
-    function [3:0] median3_4bit;
-        input [3:0] a;
-        input [3:0] b;
-        input [3:0] c;
-        begin
-            if (((a >= b) && (a <= c)) || ((a >= c) && (a <= b)))
-                median3_4bit = a;
-            else if (((b >= a) && (b <= c)) || ((b >= c) && (b <= a)))
-                median3_4bit = b;
-            else
-                median3_4bit = c;
-        end
-    endfunction
-
-    function [11:0] median3_rgb444;
-        input [11:0] a;
-        input [11:0] b;
-        input [11:0] c;
-        begin
-            median3_rgb444 = {
-                median3_4bit(a[11:8], b[11:8], c[11:8]),
-                median3_4bit(a[7:4],  b[7:4],  c[7:4]),
-                median3_4bit(a[3:0],  b[3:0],  c[3:0])
-            };
-        end
-    endfunction
-
     always @(posedge clk25) begin
         if (sx < 80)       test_rgb <= 12'hF00;
         else if (sx < 160) test_rgb <= 12'h0F0;
@@ -335,16 +315,10 @@ module top_ov7670_fifo_vga (
         if (active_video && frame_ready) begin
             camera_rgb <= framebuffer[rd_addr];
             balanced_rgb <= sw[5] ? camera_rgb : color_balance(camera_rgb);
-            balanced_rgb_d1 <= balanced_rgb;
-            balanced_rgb_d2 <= balanced_rgb_d1;
-            denoised_rgb <= sw[5] ? balanced_rgb : median3_rgb444(balanced_rgb_d2, balanced_rgb_d1, balanced_rgb);
-            filtered_rgb <= apply_filter(denoised_rgb, sw[4:2]);
+            filtered_rgb <= apply_filter(balanced_rgb, sw[4:2]);
         end else begin
             camera_rgb <= 12'h000;
             balanced_rgb <= 12'h000;
-            balanced_rgb_d1 <= 12'h000;
-            balanced_rgb_d2 <= 12'h000;
-            denoised_rgb <= 12'h000;
             filtered_rgb <= 12'h000;
         end
     end

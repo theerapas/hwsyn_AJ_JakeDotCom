@@ -1,7 +1,7 @@
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version     : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
-| Date             : Wed May  6 14:48:49 2026
+| Date             : Wed May  6 15:14:51 2026
 | Host             : tim_notebook running 64-bit major release  (build 9200)
 | Command          : report_power -file top_ov7670_fifo_vga_power_routed.rpt -pb top_ov7670_fifo_vga_power_summary_routed.pb -rpx top_ov7670_fifo_vga_power_routed.rpx
 | Design           : top_ov7670_fifo_vga
@@ -33,11 +33,11 @@ Table of Contents
 | Total On-Chip Power (W)  | 0.110        |
 | Design Power Budget (W)  | Unspecified* |
 | Power Budget Margin (W)  | NA           |
-| Dynamic (W)              | 0.037        |
+| Dynamic (W)              | 0.036        |
 | Device Static (W)        | 0.073        |
 | Effective TJA (C/W)      | 5.0          |
-| Max Ambient (C)          | 84.4         |
-| Junction Temperature (C) | 25.6         |
+| Max Ambient (C)          | 84.5         |
+| Junction Temperature (C) | 25.5         |
 | Confidence Level         | Low          |
 | Setting File             | ---          |
 | Simulation Activity File | ---          |
@@ -52,16 +52,16 @@ Table of Contents
 +----------------+-----------+----------+-----------+-----------------+
 | On-Chip        | Power (W) | Used     | Available | Utilization (%) |
 +----------------+-----------+----------+-----------+-----------------+
-| Clocks         |    <0.001 |        3 |       --- |             --- |
-| Slice Logic    |    <0.001 |     1033 |       --- |             --- |
-|   LUT as Logic |    <0.001 |      540 |     20800 |            2.60 |
+| Clocks         |     0.001 |        3 |       --- |             --- |
+| Slice Logic    |    <0.001 |      932 |       --- |             --- |
+|   LUT as Logic |    <0.001 |      483 |     20800 |            2.32 |
 |   CARRY4       |    <0.001 |       50 |      8150 |            0.61 |
-|   Register     |    <0.001 |      288 |     41600 |            0.69 |
 |   BUFG         |    <0.001 |        2 |        32 |            6.25 |
+|   Register     |    <0.001 |      244 |     41600 |            0.59 |
 |   Others       |     0.000 |       11 |       --- |             --- |
-| Signals        |     0.002 |      906 |       --- |             --- |
+| Signals        |     0.001 |      831 |       --- |             --- |
 | Block RAM      |     0.015 |       36 |        50 |           72.00 |
-| I/O            |     0.018 |       55 |       106 |           51.89 |
+| I/O            |     0.017 |       55 |       106 |           51.89 |
 | Static Power   |     0.073 |          |           |                 |
 | Total          |     0.110 |          |           |                 |
 +----------------+-----------+----------+-----------+-----------------+
@@ -142,7 +142,7 @@ Table of Contents
 +---------------------+-----------+
 | Name                | Power (W) |
 +---------------------+-----------+
-| top_ov7670_fifo_vga |     0.037 |
+| top_ov7670_fifo_vga |     0.036 |
 |   init_u            |     0.002 |
 +---------------------+-----------+
 
