@@ -163,6 +163,9 @@ module top_ov7670_fifo_vga (
 
     reg [11:0] camera_rgb = 12'h000;
     reg [11:0] balanced_rgb = 12'h000;
+    reg [11:0] balanced_rgb_d1 = 12'h000;
+    reg [11:0] balanced_rgb_d2 = 12'h000;
+    reg [11:0] denoised_rgb = 12'h000;
     reg [11:0] filtered_rgb = 12'h000;
     reg [11:0] test_rgb = 12'h000;
     reg [11:0] live_rgb = 12'h000;
@@ -271,18 +274,45 @@ module top_ov7670_fifo_vga (
             sum_ch = {2'b00, r} + {2'b00, g} + {2'b00, b};
 
             // Clamp chroma speckles near black before color balancing.
-            if ((max_ch < 4'h3) || (sum_ch < 6'd8)) begin
+            if ((max_ch < 4'h4) || (sum_ch < 6'd12) || ((r > g) && (r > b) && (r < 4'h8) && (g < 4'h5) && (b < 4'h5))) begin
                 color_balance = 12'h000;
             end else begin
                 // The OV7670 tends to leave a red pedestal in shadows on this setup.
-                if (max_ch < 4'h5)
-                    r = sub_sat4(r, 4'h2);
+                if (max_ch < 4'h7)
+                    r = sub_sat4(r, 4'h3);
                 else
                     r = sub_sat4(r, 4'h1);
 
                 g = sub_sat4(g, 4'h1);
                 color_balance = {r, g, b};
             end
+        end
+    endfunction
+
+    function [3:0] median3_4bit;
+        input [3:0] a;
+        input [3:0] b;
+        input [3:0] c;
+        begin
+            if (((a >= b) && (a <= c)) || ((a >= c) && (a <= b)))
+                median3_4bit = a;
+            else if (((b >= a) && (b <= c)) || ((b >= c) && (b <= a)))
+                median3_4bit = b;
+            else
+                median3_4bit = c;
+        end
+    endfunction
+
+    function [11:0] median3_rgb444;
+        input [11:0] a;
+        input [11:0] b;
+        input [11:0] c;
+        begin
+            median3_rgb444 = {
+                median3_4bit(a[11:8], b[11:8], c[11:8]),
+                median3_4bit(a[7:4],  b[7:4],  c[7:4]),
+                median3_4bit(a[3:0],  b[3:0],  c[3:0])
+            };
         end
     endfunction
 
@@ -305,10 +335,16 @@ module top_ov7670_fifo_vga (
         if (active_video && frame_ready) begin
             camera_rgb <= framebuffer[rd_addr];
             balanced_rgb <= sw[5] ? camera_rgb : color_balance(camera_rgb);
-            filtered_rgb <= apply_filter(balanced_rgb, sw[4:2]);
+            balanced_rgb_d1 <= balanced_rgb;
+            balanced_rgb_d2 <= balanced_rgb_d1;
+            denoised_rgb <= sw[5] ? balanced_rgb : median3_rgb444(balanced_rgb_d2, balanced_rgb_d1, balanced_rgb);
+            filtered_rgb <= apply_filter(denoised_rgb, sw[4:2]);
         end else begin
             camera_rgb <= 12'h000;
             balanced_rgb <= 12'h000;
+            balanced_rgb_d1 <= 12'h000;
+            balanced_rgb_d2 <= 12'h000;
+            denoised_rgb <= 12'h000;
             filtered_rgb <= 12'h000;
         end
     end
