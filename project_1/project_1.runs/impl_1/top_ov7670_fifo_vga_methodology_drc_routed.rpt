@@ -1,7 +1,7 @@
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
-| Date         : Wed May  6 18:37:08 2026
+| Date         : Fri May  8 22:34:19 2026
 | Host         : tim_notebook running 64-bit major release  (build 9200)
 | Command      : report_methodology -file top_ov7670_fifo_vga_methodology_drc_routed.rpt -pb top_ov7670_fifo_vga_methodology_drc_routed.pb -rpx top_ov7670_fifo_vga_methodology_drc_routed.rpx
 | Design       : top_ov7670_fifo_vga
@@ -23,11 +23,11 @@ Table of Contents
           Floorplan: design_1
       Design limits: <entire design considered>
              Max checks: <unlimited>
-             Checks found: 240
+             Checks found: 244
 +-----------+------------------+--------------------------------------------+--------+
 | Rule      | Severity         | Description                                | Checks |
 +-----------+------------------+--------------------------------------------+--------+
-| TIMING-17 | Critical Warning | Non-clocked sequential cell                | 187    |
+| TIMING-17 | Critical Warning | Non-clocked sequential cell                | 191    |
 | HPDR-1    | Warning          | Port pin direction inconsistency           | 1      |
 | SYNTH-6   | Warning          | Timing of a RAM block might be sub-optimal | 24     |
 | TIMING-18 | Warning          | Missing input or output delay              | 28     |
@@ -347,7 +347,7 @@ Related violations: <none>
 
 TIMING-17#63 Critical Warning
 Non-clocked sequential cell  
-The clock pin framebuffer_reg_0_0_cooolgate_en_gate_73_cooolDelFlop/C is not reached by a timing clock
+The clock pin framebuffer_reg_0_0_cooolgate_en_gate_25_cooolDelFlop/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#64 Critical Warning
@@ -702,12 +702,12 @@ Related violations: <none>
 
 TIMING-17#134 Critical Warning
 Non-clocked sequential cell  
-The clock pin framebuffer_reg_mux_sel_b_pos_0__10/C is not reached by a timing clock
+The clock pin framebuffer_reg_mux_sel_b_pos_0__1/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#135 Critical Warning
 Non-clocked sequential cell  
-The clock pin framebuffer_reg_mux_sel_b_pos_1__10/C is not reached by a timing clock
+The clock pin framebuffer_reg_mux_sel_b_pos_1__1/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#136 Critical Warning
@@ -892,80 +892,100 @@ Related violations: <none>
 
 TIMING-17#172 Critical Warning
 Non-clocked sequential cell  
-The clock pin vga_u/sx_reg[5]/C is not reached by a timing clock
+The clock pin vga_u/sx_reg[4]_rep/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#173 Critical Warning
 Non-clocked sequential cell  
-The clock pin vga_u/sx_reg[6]/C is not reached by a timing clock
+The clock pin vga_u/sx_reg[4]_rep__0/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#174 Critical Warning
 Non-clocked sequential cell  
-The clock pin vga_u/sx_reg[7]/C is not reached by a timing clock
+The clock pin vga_u/sx_reg[5]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#175 Critical Warning
 Non-clocked sequential cell  
-The clock pin vga_u/sx_reg[8]/C is not reached by a timing clock
+The clock pin vga_u/sx_reg[5]_rep/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#176 Critical Warning
 Non-clocked sequential cell  
-The clock pin vga_u/sx_reg[9]/C is not reached by a timing clock
+The clock pin vga_u/sx_reg[5]_rep__0/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#177 Critical Warning
 Non-clocked sequential cell  
-The clock pin vga_u/sy_reg[0]/C is not reached by a timing clock
+The clock pin vga_u/sx_reg[6]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#178 Critical Warning
 Non-clocked sequential cell  
-The clock pin vga_u/sy_reg[1]/C is not reached by a timing clock
+The clock pin vga_u/sx_reg[7]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#179 Critical Warning
 Non-clocked sequential cell  
-The clock pin vga_u/sy_reg[2]/C is not reached by a timing clock
+The clock pin vga_u/sx_reg[8]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#180 Critical Warning
 Non-clocked sequential cell  
-The clock pin vga_u/sy_reg[3]/C is not reached by a timing clock
+The clock pin vga_u/sx_reg[9]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#181 Critical Warning
 Non-clocked sequential cell  
-The clock pin vga_u/sy_reg[4]/C is not reached by a timing clock
+The clock pin vga_u/sy_reg[0]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#182 Critical Warning
 Non-clocked sequential cell  
-The clock pin vga_u/sy_reg[5]/C is not reached by a timing clock
+The clock pin vga_u/sy_reg[1]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#183 Critical Warning
 Non-clocked sequential cell  
-The clock pin vga_u/sy_reg[6]/C is not reached by a timing clock
+The clock pin vga_u/sy_reg[2]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#184 Critical Warning
 Non-clocked sequential cell  
-The clock pin vga_u/sy_reg[7]/C is not reached by a timing clock
+The clock pin vga_u/sy_reg[3]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#185 Critical Warning
 Non-clocked sequential cell  
-The clock pin vga_u/sy_reg[8]/C is not reached by a timing clock
+The clock pin vga_u/sy_reg[4]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#186 Critical Warning
 Non-clocked sequential cell  
-The clock pin vga_u/sy_reg[9]/C is not reached by a timing clock
+The clock pin vga_u/sy_reg[5]/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#187 Critical Warning
+Non-clocked sequential cell  
+The clock pin vga_u/sy_reg[6]/C is not reached by a timing clock
+Related violations: <none>
+
+TIMING-17#188 Critical Warning
+Non-clocked sequential cell  
+The clock pin vga_u/sy_reg[7]/C is not reached by a timing clock
+Related violations: <none>
+
+TIMING-17#189 Critical Warning
+Non-clocked sequential cell  
+The clock pin vga_u/sy_reg[8]/C is not reached by a timing clock
+Related violations: <none>
+
+TIMING-17#190 Critical Warning
+Non-clocked sequential cell  
+The clock pin vga_u/sy_reg[9]/C is not reached by a timing clock
+Related violations: <none>
+
+TIMING-17#191 Critical Warning
 Non-clocked sequential cell  
 The clock pin vsync_seen_reg/C is not reached by a timing clock
 Related violations: <none>

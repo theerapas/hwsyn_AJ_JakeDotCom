@@ -1,7 +1,7 @@
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
 ---------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
-| Date         : Wed May  6 18:36:36 2026
+| Date         : Fri May  8 22:33:49 2026
 | Host         : tim_notebook running 64-bit major release  (build 9200)
 | Command      : report_control_sets -verbose -file top_ov7670_fifo_vga_control_sets_placed.rpt
 | Design       : top_ov7670_fifo_vga
@@ -23,11 +23,11 @@ Table of Contents
 +----------------------------------------------------------+-------+
 |                          Status                          | Count |
 +----------------------------------------------------------+-------+
-| Total control sets                                       |    27 |
-|    Minimum number of control sets                        |    27 |
+| Total control sets                                       |    25 |
+|    Minimum number of control sets                        |    25 |
 |    Addition due to synthesis replication                 |     0 |
 |    Addition due to physical synthesis replication        |     0 |
-| Unused register locations in slices containing registers |   113 |
+| Unused register locations in slices containing registers |   101 |
 +----------------------------------------------------------+-------+
 * Control sets can be merged at opt_design using control_set_merge or merge_equivalent_drivers
 ** Run report_qor_suggestions for automated merging and remapping suggestions
@@ -39,15 +39,15 @@ Table of Contents
 +--------------------+-------+
 |       Fanout       | Count |
 +--------------------+-------+
-| Total control sets |    27 |
+| Total control sets |    25 |
 | >= 0 to < 4        |     5 |
-| >= 4 to < 6        |     4 |
+| >= 4 to < 6        |     3 |
 | >= 6 to < 8        |     3 |
-| >= 8 to < 10       |     4 |
-| >= 10 to < 12      |     5 |
-| >= 12 to < 14      |     1 |
-| >= 14 to < 16      |     0 |
-| >= 16              |     5 |
+| >= 8 to < 10       |     3 |
+| >= 10 to < 12      |     4 |
+| >= 12 to < 14      |     0 |
+| >= 14 to < 16      |     1 |
+| >= 16              |     6 |
 +--------------------+-------+
 * Control sets can be remapped at either synth_design or opt_design
 
@@ -60,8 +60,8 @@ Table of Contents
 +--------------+-----------------------+------------------------+-----------------+--------------+
 | No           | No                    | No                     |              40 |           29 |
 | No           | No                    | Yes                    |               0 |            0 |
-| No           | Yes                   | No                     |              67 |           29 |
-| Yes          | No                    | No                     |              51 |           21 |
+| No           | Yes                   | No                     |              71 |           33 |
+| Yes          | No                    | No                     |              51 |           20 |
 | Yes          | No                    | Yes                    |               0 |            0 |
 | Yes          | Yes                   | No                     |              65 |           22 |
 +--------------+-----------------------+------------------------+-----------------+--------------+
@@ -73,33 +73,31 @@ Table of Contents
 +-------------------------+---------------------------------+---------------------------------+------------------+----------------+--------------+
 |       Clock Signal      |          Enable Signal          |         Set/Reset Signal        | Slice Load Count | Bel Load Count | Bels / Slice |
 +-------------------------+---------------------------------+---------------------------------+------------------+----------------+--------------+
+|  cam_pclk_buf_IBUF_BUFG |                                 | init_u/frame_seen               |                1 |              1 |         1.00 |
+|  cam_pclk_buf_IBUF_BUFG |                                 | latched_vsync                   |                1 |              1 |         1.00 |
+|  cam_pclk_buf_IBUF_BUFG |                                 | latched_href                    |                1 |              1 |         1.00 |
 |  CLK100MHZ_IBUF_BUFG    | init_u/sccb_u/scl3_out          | init_u/sccb_u/state1            |                1 |              1 |         1.00 |
 |  CLK100MHZ_IBUF_BUFG    | init_u/camera_reset_i_1_n_0     | init_u/wait_ctr[19]_i_1_n_0     |                1 |              1 |         1.00 |
-|  cam_pclk_buf_IBUF_BUFG |                                 | init_u/frame_seen               |                1 |              1 |         1.00 |
-|  cam_pclk_buf_IBUF_BUFG |                                 | latched_href                    |                1 |              1 |         1.00 |
-|  cam_pclk_buf_IBUF_BUFG |                                 | latched_vsync                   |                1 |              1 |         1.00 |
-|  cam_xclk_OBUF_BUFG     |                                 | vga_u/test_rgb10_in             |                1 |              4 |         4.00 |
-|  cam_xclk_OBUF_BUFG     |                                 | vga_u/SR[1]                     |                1 |              4 |         4.00 |
 |  cam_xclk_OBUF_BUFG     |                                 | led_OBUF[4]                     |                3 |              4 |         1.33 |
 |  cam_xclk_OBUF_BUFG     |                                 | led_OBUF[5]                     |                3 |              4 |         1.33 |
+|  cam_xclk_OBUF_BUFG     |                                 | vga_u/test_rgb10_in             |                2 |              4 |         2.00 |
 |  cam_xclk_OBUF_BUFG     |                                 |                                 |                5 |              6 |         1.20 |
+|  cam_pclk_buf_IBUF_BUFG |                                 |                                 |                5 |              7 |         1.40 |
 |  CLK100MHZ_IBUF_BUFG    |                                 | init_u/sccb_u/state1            |                4 |              7 |         1.75 |
-|  cam_pclk_buf_IBUF_BUFG |                                 |                                 |                6 |              7 |         1.17 |
+|  cam_pclk_buf_IBUF_BUFG | init_u/E[0]                     |                                 |                3 |              8 |         2.67 |
 |  CLK100MHZ_IBUF_BUFG    | init_u/sccb_u/E[0]              | init_u/wait_ctr[19]_i_1_n_0     |                5 |              8 |         1.60 |
-|  cam_pclk_buf_IBUF_BUFG | init_u/E[0]                     |                                 |                2 |              8 |         4.00 |
-|  cam_xclk_OBUF_BUFG     |                                 | vga_u/SR[0]                     |                4 |              8 |         2.00 |
-|  cam_pclk_buf_IBUF_BUFG | cap_y                           | init_u/SR[0]                    |                4 |              9 |         2.25 |
+|  cam_pclk_buf_IBUF_BUFG | cap_y                           | init_u/SR[0]                    |                3 |              9 |         3.00 |
+|  cam_xclk_OBUF_BUFG     | vga_u/sx[9]_i_1_n_0             |                                 |                3 |             10 |         3.33 |
+| ~cam_pclk_buf_IBUF_BUFG |                                 |                                 |                9 |             10 |         1.11 |
 |  CLK100MHZ_IBUF_BUFG    | init_u/sccb_u/shreg[17]_i_1_n_0 | init_u/sccb_u/shreg[26]_i_1_n_0 |                2 |             10 |         5.00 |
-| ~cam_pclk_buf_IBUF_BUFG |                                 |                                 |                8 |             10 |         1.25 |
-|  cam_xclk_OBUF_BUFG     |                                 | vga_u/sx[9]_i_1_n_0             |                3 |             10 |         3.33 |
-|  cam_xclk_OBUF_BUFG     | vga_u/sx[9]_i_1_n_0             |                                 |                4 |             10 |         2.50 |
 |  CLK100MHZ_IBUF_BUFG    |                                 | init_u/sccb_u/tick              |                3 |             11 |         3.67 |
-|  cam_xclk_OBUF_BUFG     |                                 | vga_u/frame_ready_reg_0         |                4 |             12 |         3.00 |
-|  CLK100MHZ_IBUF_BUFG    | init_u/tx_reg_data[7]_i_1_n_0   |                                 |                8 |             16 |         2.00 |
-|  cam_pclk_buf_IBUF_BUFG | cap_x[0]                        | init_u/init_done_reg_3          |                6 |             16 |         2.67 |
+|  cam_xclk_OBUF_BUFG     |                                 | vga_u/sx[9]_i_1_n_0             |                6 |             14 |         2.33 |
+|  cam_pclk_buf_IBUF_BUFG | init_u/cap_x[0]                 | init_u/init_done_reg_3          |                5 |             16 |         3.20 |
+|  CLK100MHZ_IBUF_BUFG    | init_u/tx_reg_data[7]_i_1_n_0   |                                 |                9 |             16 |         1.78 |
 |  CLK100MHZ_IBUF_BUFG    |                                 |                                 |               10 |             17 |         1.70 |
-|  CLK100MHZ_IBUF_BUFG    | init_u/sccb_u/shreg[17]_i_1_n_0 |                                 |                7 |             17 |         2.43 |
-|  CLK100MHZ_IBUF_BUFG    | init_u/wait_ctr[19]_i_2_n_0     | init_u/wait_ctr[19]_i_1_n_0     |                3 |             20 |         6.67 |
+|  CLK100MHZ_IBUF_BUFG    | init_u/sccb_u/shreg[17]_i_1_n_0 |                                 |                5 |             17 |         3.40 |
+|  CLK100MHZ_IBUF_BUFG    | init_u/wait_ctr[19]_i_2_n_0     | init_u/wait_ctr[19]_i_1_n_0     |                5 |             20 |         4.00 |
+|  cam_xclk_OBUF_BUFG     |                                 | vga_u/SR[0]                     |                9 |             24 |         2.67 |
 +-------------------------+---------------------------------+---------------------------------+------------------+----------------+--------------+
 
 

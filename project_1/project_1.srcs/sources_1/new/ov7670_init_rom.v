@@ -26,7 +26,7 @@ module ov7670_init_rom (
             8'h09: data = 16'h0400;
             8'h0A: data = 16'h40D0; // COM15: RGB565, full output range
             8'h0B: data = 16'h3A04;
-            8'h0C: data = 16'h1438;
+            8'h0C: data = 16'h1438; // COM9: keep enough AGC for usable low-light brightness
             8'h0D: data = 16'h4F80; // MTX1: reduce red/yellow cast on this module
             8'h0E: data = 16'h5080; // MTX2: reduce red/yellow cast on this module
             8'h0F: data = 16'h5100;
@@ -68,19 +68,19 @@ module ov7670_init_rom (
             8'h33: data = 16'h9600;
             8'h34: data = 16'h9A00;
             8'h35: data = 16'hB084;
-            8'h36: data = 16'hB10C;
+            8'h36: data = 16'hB18C; // ABLC1: enable auto black-level calibration
             8'h37: data = 16'hB20E;
             8'h38: data = 16'hB382;
             8'h39: data = 16'hB80A;
             8'h3A: data = colorbar ? 16'h4208 : 16'h4200; // COM17 DSP color bars
-            8'h3B: data = 16'h13E7; // COM8: enable AGC/AWB/AEC
+            8'h3B: data = 16'h13E5; // COM8: enable AGC/AEC, keep AWB off so fixed gains hold
             8'h3C: data = 16'h4108; // COM16: AWB gain enable
             8'h3D: data = 16'h6F9F; // AWB control
-            8'h3E: data = 16'h6A40; // green/red channel balance helper
+            8'h3E: data = 16'h6A50; // green/red channel balance helper
 
             // Sensor-side gain trim. These registers are written after AWB is
             // enabled so the module starts from a less red-biased balance.
-            8'h3F: data = 16'h0190; // blue AWB gain, default is 0x80
+            8'h3F: data = 16'h0180; // blue AWB gain, default is 0x80
             8'h40: data = 16'h0250; // red AWB gain, default is 0x80
             8'h41: data = 16'hFFFF;
             default: data = 16'hFFFF;

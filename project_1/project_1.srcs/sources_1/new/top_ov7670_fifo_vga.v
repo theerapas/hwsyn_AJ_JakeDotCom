@@ -209,6 +209,17 @@ module top_ov7670_fifo_vga (
         end
     endfunction
 
+    // Saturating add helper used by the camera color calibration.
+    function [3:0] add_sat4;
+        input [3:0] value;
+        input [3:0] amount;
+        reg [4:0] sum;
+        begin
+            sum = {1'b0, value} + {1'b0, amount};
+            add_sat4 = sum[4] ? 4'hF : sum[3:0];
+        end
+    endfunction
+
     function [11:0] color_balance;
         input [11:0] rgb;
         reg [3:0] r;
@@ -216,23 +227,46 @@ module top_ov7670_fifo_vga (
         reg [3:0] b;
         reg [3:0] max_ch;
         reg [5:0] sum_ch;
+        reg [4:0] r_ext;
+        reg [4:0] g_ext;
+        reg [4:0] b_ext;
+        reg       red_dominant;
+        reg       low_light;
+        reg       purple_dominant;
         begin
             r = rgb[11:8];
             g = rgb[7:4];
             b = rgb[3:0];
             max_ch = (r > g) ? ((r > b) ? r : b) : ((g > b) ? g : b);
             sum_ch = {2'b00, r} + {2'b00, g} + {2'b00, b};
+            r_ext = {1'b0, r};
+            g_ext = {1'b0, g};
+            b_ext = {1'b0, b};
+            red_dominant = (r_ext > g_ext + 5'd1) && (r_ext > b_ext + 5'd1);
+            low_light = (max_ch < 4'hB);
+            purple_dominant = (r_ext > g_ext + 5'd1) && (b_ext > g_ext + 5'd1);
 
             // Board/camera calibration:
-            // - clamp dark/red-only chroma speckles near black
-            // - trim the residual warm cast after sensor-side AWB gain tuning
+            // - clamp only the darkest pixels and red-only low-light speckles
+            // - trim purple/red bias without crushing low-light detail
             // SW5 bypasses this path for raw sensor color-bar debugging.
-            if ((max_ch < 4'h4) ||
-                (sum_ch < 6'd10) ||
-                ((r > g + 4'h2) && (r > b + 4'h2) && (r < 4'h9) && (g < 4'h5) && (b < 4'h5))) begin
+            if ((max_ch < 4'h2) ||
+                (sum_ch < 6'd5) ||
+                (low_light && (g < 4'h3) && (b < 4'h3) && red_dominant)) begin
                 color_balance = 12'h000;
-            end else begin
+            end else if (purple_dominant) begin
                 r = sub_sat4(r, 4'h1);
+                b = sub_sat4(b, 4'h1);
+                if (g < 4'hE)
+                    g = add_sat4(g, 4'h1);
+                color_balance = {r, g, b};
+            end else if (red_dominant) begin
+                if (max_ch < 4'hC)
+                    r = sub_sat4(r, 4'h2);
+                else
+                    r = sub_sat4(r, 4'h1);
+                color_balance = {r, g, b};
+            end else begin
                 color_balance = {r, g, b};
             end
         end
