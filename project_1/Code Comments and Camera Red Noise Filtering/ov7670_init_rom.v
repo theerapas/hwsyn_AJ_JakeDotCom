@@ -1,3 +1,8 @@
+// Register ROM for OV7670 RGB565 operation.
+//
+// Each entry is {register_address, register_value}. Special words:
+// - 16'hFFFE: delay marker handled by ov7670_init_controller
+// - 16'hFFFF: end of table
 module ov7670_init_rom (
     input  wire [7:0] addr,
     input  wire       colorbar,
@@ -10,19 +15,20 @@ module ov7670_init_rom (
             8'h02: data = 16'h1280; // reset again, matching the reference flow
             8'h03: data = 16'hFFFE;
 
-            // Register sequence copied from the local example project's
-            // ov7670_registers.v, with only COM17 made switch-selectable.
+            // RGB565 setup based on the local example project's
+            // ov7670_registers.v. Later AWB/AEC registers are board-specific
+            // tuning added after SCCB reliability was fixed.
             8'h04: data = colorbar ? 16'h1206 : 16'h1204;
             8'h05: data = 16'h1100;
             8'h06: data = 16'h0C00;
             8'h07: data = 16'h3E00;
             8'h08: data = 16'h8C00;
             8'h09: data = 16'h0400;
-            8'h0A: data = 16'h40D0;
+            8'h0A: data = 16'h40D0; // COM15: RGB565, full output range
             8'h0B: data = 16'h3A04;
-            8'h0C: data = 16'h1438;
-            8'h0D: data = 16'h4F80; // MTX1 - reduced from 0xB3 to cut red coefficient
-            8'h0E: data = 16'h5080; // MTX2 - reduced from 0xB3 to cut red coefficient
+            8'h0C: data = 16'h1418; // COM9: AGC ceiling 2x (was 0x38 = 4x). Less red noise in low light.
+            8'h0D: data = 16'h4F80; // MTX1: reduce red/yellow cast on this module
+            8'h0E: data = 16'h5080; // MTX2: reduce red/yellow cast on this module
             8'h0F: data = 16'h5100;
             8'h10: data = 16'h523D;
             8'h11: data = 16'h53A7;
@@ -62,7 +68,7 @@ module ov7670_init_rom (
             8'h33: data = 16'h9600;
             8'h34: data = 16'h9A00;
             8'h35: data = 16'hB084;
-            8'h36: data = 16'hB10C;
+            8'h36: data = 16'hB18C; // ABLC1: enable auto BLC (bit 7) - kills red pedestal in shadows
             8'h37: data = 16'hB20E;
             8'h38: data = 16'hB382;
             8'h39: data = 16'hB80A;
@@ -70,18 +76,12 @@ module ov7670_init_rom (
             8'h3B: data = 16'h13E7; // COM8: enable AGC/AWB/AEC
             8'h3C: data = 16'h4108; // COM16: AWB gain enable
             8'h3D: data = 16'h6F9F; // AWB control
-            8'h3E: data = 16'h6A40; // green/red channel balance helper
+            8'h3E: data = 16'h6A50; // green/red channel balance helper (lifted from 0x40 to push G vs R)
 
-            // ---- Red-noise reduction tweaks ---------------------------------
-            // These run AFTER the AWB enable so the values stick. Direct
-            // attenuation of the OV7670's red channel at the analog AWB
-            // pre-gain stage. Default for both registers is 0x80 (gain=1).
-            //   Lowering 0x02 below 0x80 makes red darker.
-            //   Raising 0x01 above 0x80 makes blue brighter (matches the cut).
-            8'h3F: data = 16'h0190; // BLUE AWB gain  (default 0x80 -> +12.5%)
-            8'h40: data = 16'h0250; // RED  AWB gain  (default 0x80 -> -37.5%)
-            // -----------------------------------------------------------------
-
+            // Sensor-side gain trim. These registers are written after AWB is
+            // enabled so the module starts from a less red-biased balance.
+            8'h3F: data = 16'h0190; // blue AWB gain, default is 0x80
+            8'h40: data = 16'h0250; // red AWB gain, default is 0x80
             8'h41: data = 16'hFFFF;
             default: data = 16'hFFFF;
         endcase

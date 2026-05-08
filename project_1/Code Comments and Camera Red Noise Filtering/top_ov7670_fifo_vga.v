@@ -1,5 +1,15 @@
 `timescale 1ns / 1ps
 
+// Top-level video pipeline for Basys 3 + OV7670.
+//
+// Clock domains:
+// - CLK100MHZ drives SCCB camera configuration and creates the 25 MHz clock.
+// - cam_pclk_buf captures camera data in the OV7670 pixel clock domain.
+// - clk25 drives VGA timing and framebuffer reads.
+//
+// Video path:
+// OV7670 RGB565 stream -> 320x240 RGB444 framebuffer -> optional calibration
+// and image filter -> 640x480 VGA output by 2x pixel/line repetition.
 module top_ov7670_fifo_vga (
     input  wire CLK100MHZ,
     input  wire [7:0] sw,
@@ -29,6 +39,8 @@ module top_ov7670_fifo_vga (
 
     wire clk25 = div4[1];
 
+    // OV7670 requires an external clock. 25 MHz works with the register
+    // configuration used in ov7670_init_rom.v.
     assign cam_xclk  = clk25;
     assign cam_pwdn  = 1'b0;
 
@@ -46,7 +58,6 @@ module top_ov7670_fifo_vga (
 
     wire [9:0] sx, sy;
     wire       active_video;
-    wire       frame_start;
 
     vga_640x480 vga_u (
         .clk25        (clk25),
@@ -55,14 +66,15 @@ module top_ov7670_fifo_vga (
         .hsync        (Hsync),
         .vsync        (Vsync),
         .active_video (active_video),
-        .frame_start  (frame_start)
+        .frame_start  ()
     );
 
     localparam FRAME_WIDTH  = 320;
     localparam FRAME_HEIGHT = 240;
     localparam FRAME_PIXELS = 76800;
 
-    // Store the same 12-bit RGB444 format used by the reference design.
+    // Store a 320x240 RGB444 frame. The camera is configured for a VGA-sized
+    // stream, and the capture logic keeps every other source row/column.
     (* ram_style = "block" *) reg [11:0] framebuffer [0:FRAME_PIXELS-1];
 
     reg pclk_activity = 1'b0;
@@ -73,11 +85,9 @@ module top_ov7670_fifo_vga (
     reg pixel_seen    = 1'b0;
     reg frame_ready   = 1'b0;
 
-    reg [1:0] byte_phase = 2'd0;
+    reg       byte_phase = 1'b0;
     reg       href_d = 1'b0;
-    reg [7:0] b0 = 8'h00;
-    reg [7:0] b1 = 8'h00;
-    reg [7:0] b2 = 8'h00;
+    reg [7:0] byte_hi = 8'h00;
     reg [9:0] cap_x = 10'd0;
     reg [8:0] cap_y = 9'd0;
 
@@ -97,6 +107,10 @@ module top_ov7670_fifo_vga (
     wire [16:0] wr_addr =
         ({9'd0, cap_dst_y} << 8) + ({9'd0, cap_dst_y} << 6) + {8'd0, cap_dst_x};
 
+    // Camera capture. Data is sampled on the falling PCLK edge and consumed on
+    // the following rising edge, matching the timing style used by the reference
+    // OV7670 capture design. Every other source column/row is stored to convert
+    // the VGA-sized sensor stream into the required 320x240 frame.
     always @(posedge cam_pclk_buf) begin
         pclk_activity <= ~pclk_activity;
         pclk_seen <= 1'b1;
@@ -105,13 +119,13 @@ module top_ov7670_fifo_vga (
         if (latched_vsync) vsync_seen <= 1'b1;
 
         if (!cam_init_done) begin
-            byte_phase <= 2'd0;
+            byte_phase <= 1'b0;
             cap_x <= 10'd0;
             cap_y <= 9'd0;
             frame_ready <= 1'b0;
             pixel_seen <= 1'b0;
         end else if (latched_vsync) begin
-            byte_phase <= 2'd0;
+            byte_phase <= 1'b0;
             cap_x <= 10'd0;
             cap_y <= 9'd0;
             if (pixel_seen) begin
@@ -120,36 +134,22 @@ module top_ov7670_fifo_vga (
             end
             pixel_seen <= 1'b0;
         end else if (latched_href) begin
-            case (byte_phase)
-                2'd0: begin
-                    b0 <= latched_d;
-                    byte_phase <= 2'd1;
-                end
-
-                2'd1: begin
-                    b1 <= latched_d;
-                    byte_phase <= 2'd2;
-                end
-
-                2'd2: begin
-                    b2 <= latched_d;
-                    byte_phase <= 2'd3;
-                end
-
-                default: begin
-                    byte_phase <= 2'd0;
-                    if ((cap_x < 10'd640) && (cap_y < 9'd480)) begin
-                        if (!cap_y[0] && (cap_dst_x < FRAME_WIDTH) && (cap_dst_y < FRAME_HEIGHT)) begin
-                            framebuffer[wr_addr] <= dark_clamp_rgb444(camera_word_to_rgb444(b0, b1, b2, latched_d, sw[7:6]));
-                            if ((b0 != 8'h00) || (b1 != 8'h00) || (b2 != 8'h00) || (latched_d != 8'h00))
-                                pixel_seen <= 1'b1;
-                        end
-                        cap_x <= cap_x + 10'd2;
+            if (!byte_phase) begin
+                byte_hi <= latched_d;
+                byte_phase <= 1'b1;
+            end else begin
+                byte_phase <= 1'b0;
+                if ((cap_x < 10'd640) && (cap_y < 9'd480)) begin
+                    if (!cap_x[0] && !cap_y[0] && (cap_dst_x < FRAME_WIDTH) && (cap_dst_y < FRAME_HEIGHT)) begin
+                        framebuffer[wr_addr] <= rgb565_to_rgb444(byte_hi, latched_d);
+                        if ((byte_hi != 8'h00) || (latched_d != 8'h00))
+                            pixel_seen <= 1'b1;
                     end
+                    cap_x <= cap_x + 10'd1;
                 end
-            endcase
+            end
         end else begin
-            byte_phase <= 2'd0;
+            byte_phase <= 1'b0;
             cap_x <= 10'd0;
             if (href_d && !latched_href && (cap_y < 9'd479))
                 cap_y <= cap_y + 9'd1;
@@ -170,7 +170,6 @@ module top_ov7670_fifo_vga (
     function [11:0] rgb565_to_rgb444;
         input [7:0] hi;
         input [7:0] lo;
-        input       swap_rb;
         reg [3:0] r4;
         reg [3:0] g4;
         reg [3:0] b4;
@@ -178,81 +177,12 @@ module top_ov7670_fifo_vga (
             r4 = hi[7:4];
             g4 = {hi[2:0], lo[7]};
             b4 = lo[4:1];
-            rgb565_to_rgb444 = swap_rb ? {b4, g4, r4} : {r4, g4, b4};
+            rgb565_to_rgb444 = {r4, g4, b4};
         end
     endfunction
 
-    function [3:0] sat4_from_8bit;
-        input signed [11:0] value;
-        begin
-            if (value < 12'sd0)
-                sat4_from_8bit = 4'h0;
-            else if (value > 12'sd255)
-                sat4_from_8bit = 4'hF;
-            else
-                sat4_from_8bit = value[7:4];
-        end
-    endfunction
-
-    function [11:0] yuv_to_rgb444;
-        input [7:0] y;
-        input [7:0] u;
-        input [7:0] v;
-        reg signed [11:0] yy;
-        reg signed [11:0] uu;
-        reg signed [11:0] vv;
-        reg signed [11:0] rr;
-        reg signed [11:0] gg;
-        reg signed [11:0] bb;
-        begin
-            yy = {4'b0000, y};
-            uu = {4'b0000, u} - 12'sd128;
-            vv = {4'b0000, v} - 12'sd128;
-            rr = yy + vv + (vv >>> 2) + (vv >>> 3);
-            gg = yy - (uu >>> 2) - (uu >>> 4) - (vv >>> 1) - (vv >>> 3);
-            bb = yy + uu + (uu >>> 1) + (uu >>> 2);
-            yuv_to_rgb444 = {sat4_from_8bit(rr), sat4_from_8bit(gg), sat4_from_8bit(bb)};
-        end
-    endfunction
-
-    function [11:0] camera_word_to_rgb444;
-        input [7:0] byte0;
-        input [7:0] byte1;
-        input [7:0] byte2;
-        input [7:0] byte3;
-        input [1:0] mode;
-        begin
-            case (mode)
-                2'b00: camera_word_to_rgb444 = rgb565_to_rgb444(byte0, byte1, 1'b0); // RGB565
-                2'b01: camera_word_to_rgb444 = rgb565_to_rgb444(byte1, byte0, 1'b0); // RGB565 byte swap
-                2'b10: camera_word_to_rgb444 = yuv_to_rgb444(byte0, byte1, byte3);   // YUYV
-                default: camera_word_to_rgb444 = yuv_to_rgb444(byte1, byte0, byte2);  // UYVY
-            endcase
-        end
-    endfunction
-
-    function [11:0] dark_clamp_rgb444;
-        input [11:0] rgb;
-        reg [3:0] r;
-        reg [3:0] g;
-        reg [3:0] b;
-        begin
-            r = rgb[11:8];
-            g = rgb[7:4];
-            b = rgb[3:0];
-            // Kill very dark pixels outright.
-            if ((r < 4'h4) && (g < 4'h4) && (b < 4'h4))
-                dark_clamp_rgb444 = 12'h000;
-            // Kill "red-only" chroma speckles: R noticeably above G and B,
-            // both of which are near zero. This is the dominant red-noise
-            // pattern in shadow areas.
-            else if ((g < 4'h3) && (b < 4'h3) && (r >= g + 4'h3) && (r >= b + 4'h3))
-                dark_clamp_rgb444 = 12'h000;
-            else
-                dark_clamp_rgb444 = rgb;
-        end
-    endfunction
-
+    // User-selectable filters. sw[4:2] selects normal, grayscale, inversion,
+    // red-only, green-only, or blue-only video.
     function [11:0] apply_filter;
         input [11:0] rgb;
         input [2:0] mode;
@@ -270,6 +200,7 @@ module top_ov7670_fifo_vga (
         end
     endfunction
 
+    // Saturating subtract helper used by the camera color calibration.
     function [3:0] sub_sat4;
         input [3:0] value;
         input [3:0] amount;
@@ -285,29 +216,50 @@ module top_ov7670_fifo_vga (
         reg [3:0] b;
         reg [3:0] max_ch;
         reg [5:0] sum_ch;
+        reg       red_dominant;
+        reg       low_light;
         begin
             r = rgb[11:8];
             g = rgb[7:4];
             b = rgb[3:0];
             max_ch = (r > g) ? ((r > b) ? r : b) : ((g > b) ? g : b);
             sum_ch = {2'b00, r} + {2'b00, g} + {2'b00, b};
+            // "Red dominant" = R clearly above both G and B. Catches red noise
+            // and red casts; doesn't fire on whites/grays/skin where R~=G~=B.
+            red_dominant = (r > g + 4'h1) && (r > b + 4'h1);
+            // Low-light region = the brightness band where AGC-amplified red
+            // sensor noise lives. Anything below this is true shadow.
+            low_light = (max_ch < 4'hB);
 
-            // Aggressive shadow chroma cleanup: pixels that are dark or
-            // dominated by red noise get clamped to black before anything
-            // else. Keeps black backgrounds genuinely black.
-            //   - Anything where every channel is < 4 -> already very dark
-            //   - Anything where the total brightness is tiny
-            //   - "Red speckle": R is the dominant channel but only modestly
-            //     bright while G/B are both very low (classic chroma noise)
+            // Board/camera calibration:
+            // - Clamp dark pixels and red speckles in the low-light band.
+            //   This is the dominant noise source: when the camera points at
+            //   dark scenes the OV7670 cranks AGC and the red channel grains.
+            //   The condition catches:
+            //     * very dark pixels (max < 4)
+            //     * very low total brightness (sum < 10)
+            //     * any low-light pixel where red is the only channel that
+            //       has any value to speak of (G,B both < 5 and R > G+1, B+1)
+            // - Then trim residual warm cast on red-dominant pixels only,
+            //   so whites/grays/greens/blues stay clean.
+            // SW5 bypasses this path for raw sensor color-bar debugging.
             if ((max_ch < 4'h4) ||
                 (sum_ch < 6'd10) ||
-                ((r > g + 4'h2) && (r > b + 4'h2) && (r < 4'h9) && (g < 4'h5) && (b < 4'h5))) begin
+                (low_light && (g < 4'h5) && (b < 4'h5) && (r > g + 4'h1) && (r > b + 4'h1))) begin
                 color_balance = 12'h000;
+            end else if (red_dominant) begin
+                // Red-dominant pixel - safe to trim red without desaturating
+                // neutral or non-red regions. Brightness-aware drop:
+                //   - dark/mid (max < C): -2  removes most residual cast
+                //   - bright   (max >=C): -1  preserves real saturated reds
+                if (max_ch < 4'hC)
+                    r = sub_sat4(r, 4'h2);
+                else
+                    r = sub_sat4(r, 4'h1);
+                color_balance = {r, g, b};
             end else begin
-                // Uniform mild red attenuation across the whole brightness
-                // range. The OV7670 + camera-side AWB tweak above already
-                // does most of the work; this just trims residual warm cast.
-                r = sub_sat4(r, 4'h1);
+                // Not red-dominant - leave the pixel alone. Whites stay white,
+                // greens/blues/skin stay clean.
                 color_balance = {r, g, b};
             end
         end
