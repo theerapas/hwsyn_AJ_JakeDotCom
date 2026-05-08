@@ -1,6 +1,3 @@
-// 640x480 @ 60 Hz VGA timing generator.
-// The module produces pixel coordinates, active-video qualification, and
-// active-low HSYNC/VSYNC pulses for a 25 MHz pixel clock.
 module vga_640x480 (
     input  wire       clk25,
     output reg [9:0]  sx = 0,
@@ -10,7 +7,7 @@ module vga_640x480 (
     output wire       active_video,
     output wire       frame_start
 );
-    // 640x480 @ 60 Hz nominal timing using 25 MHz pixel clock.
+    // 640x480 @ 60 Hz nominal timing using 25 MHz pixel clock
     // visible: 640, front porch:16, sync:96, back porch:48 => 800
     // visible: 480, front porch:10, sync:2,  back porch:33 => 525
 

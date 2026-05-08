@@ -200,15 +200,6 @@ module top_ov7670_fifo_vga (
         end
     endfunction
 
-    // Saturating subtract helper used by the camera color calibration.
-    function [3:0] sub_sat4;
-        input [3:0] value;
-        input [3:0] amount;
-        begin
-            sub_sat4 = (value > amount) ? (value - amount) : 4'h0;
-        end
-    endfunction
-
     function [11:0] color_balance;
         input [11:0] rgb;
         reg [3:0] r;
@@ -216,50 +207,28 @@ module top_ov7670_fifo_vga (
         reg [3:0] b;
         reg [3:0] max_ch;
         reg [5:0] sum_ch;
-        reg       red_dominant;
-        reg       low_light;
         begin
             r = rgb[11:8];
             g = rgb[7:4];
             b = rgb[3:0];
             max_ch = (r > g) ? ((r > b) ? r : b) : ((g > b) ? g : b);
             sum_ch = {2'b00, r} + {2'b00, g} + {2'b00, b};
-            // "Red dominant" = R clearly above both G and B. Catches red noise
-            // and red casts; doesn't fire on whites/grays/skin where R~=G~=B.
-            red_dominant = (r > g + 4'h1) && (r > b + 4'h1);
-            // Low-light region = the brightness band where AGC-amplified red
-            // sensor noise lives. Anything below this is true shadow.
-            low_light = (max_ch < 4'hB);
 
-            // Board/camera calibration:
-            // - Clamp dark pixels and red speckles in the low-light band.
-            //   This is the dominant noise source: when the camera points at
-            //   dark scenes the OV7670 cranks AGC and the red channel grains.
-            //   The condition catches:
-            //     * very dark pixels (max < 4)
-            //     * very low total brightness (sum < 10)
-            //     * any low-light pixel where red is the only channel that
-            //       has any value to speak of (G,B both < 5 and R > G+1, B+1)
-            // - Then trim residual warm cast on red-dominant pixels only,
-            //   so whites/grays/greens/blues stay clean.
+            // Software is conservative on purpose. The OV7670's own AWB and
+            // auto-BLC do the color/black-level work; the AGC ceiling cap in
+            // the ROM does the noise work. Software here only kills pixels
+            // that are definitively noise: very dark, OR a clear red speckle
+            // in a near-black region.
+            //
+            // Real colors must pass through unchanged - any per-pixel red
+            // trim or hue shift will distort skin, magenta, orange, etc.
+            //
             // SW5 bypasses this path for raw sensor color-bar debugging.
-            if ((max_ch < 4'h4) ||
-                (sum_ch < 6'd10) ||
-                (low_light && (g < 4'h5) && (b < 4'h5) && (r > g + 4'h1) && (r > b + 4'h1))) begin
+            if ((max_ch < 4'h3) ||
+                (sum_ch < 6'd6) ||
+                ((max_ch < 4'h8) && (g < 4'h3) && (b < 4'h3) && (r > g + 4'h2) && (r > b + 4'h2))) begin
                 color_balance = 12'h000;
-            end else if (red_dominant) begin
-                // Red-dominant pixel - safe to trim red without desaturating
-                // neutral or non-red regions. Brightness-aware drop:
-                //   - dark/mid (max < C): -2  removes most residual cast
-                //   - bright   (max >=C): -1  preserves real saturated reds
-                if (max_ch < 4'hC)
-                    r = sub_sat4(r, 4'h2);
-                else
-                    r = sub_sat4(r, 4'h1);
-                color_balance = {r, g, b};
             end else begin
-                // Not red-dominant - leave the pixel alone. Whites stay white,
-                // greens/blues/skin stay clean.
                 color_balance = {r, g, b};
             end
         end
