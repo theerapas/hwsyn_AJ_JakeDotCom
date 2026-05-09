@@ -1,5 +1,7 @@
 `timescale 1ns / 1ps
 
+// Test one SCCB register-write transaction. The test checks that the write
+// engine pulses done once, returns the bus to idle, and produces SIOC activity.
 module tb_sccb_write_byte;
     reg clk = 1'b0;
     reg reset = 1'b1;

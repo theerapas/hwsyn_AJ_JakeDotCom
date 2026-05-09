@@ -1,5 +1,7 @@
 `timescale 1ns / 1ps
 
+// Test one complete 640x480 VGA frame. It counts active-video pixels and the
+// active-low HSYNC/VSYNC pulse widths against the expected timing constants.
 module tb_vga_640x480;
     reg clk25 = 1'b0;
     wire [9:0] sx;

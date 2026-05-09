@@ -34,6 +34,15 @@ module top_ov7670_fifo_vga (
     output wire [15:0] led
 );
 
+    // Switch map:
+    // sw[0] selects FPGA-generated VGA test bars.
+    // sw[1] selects a raw live camera-signal debug view.
+    // sw[4:2] selects normal/grayscale/invert/R/G/B output filters.
+    // sw[5] enables the OV7670 internal color-bar test pattern.
+    // sw[7:6] are currently unused, but mirrored on LEDs for visibility.
+
+    // Divide the 100 MHz board clock by 4. The resulting 25 MHz clock is used
+    // for both VGA timing and the OV7670 XCLK input.
     reg [1:0] div4 = 2'b00;
     always @(posedge CLK100MHZ) div4 <= div4 + 2'd1;
 
@@ -167,6 +176,8 @@ module top_ov7670_fifo_vga (
     reg [11:0] test_rgb = 12'h000;
     reg [11:0] live_rgb = 12'h000;
 
+    // Convert one OV7670 RGB565 pixel to the 12-bit RGB444 format used by the
+    // framebuffer and VGA output.
     function [11:0] rgb565_to_rgb444;
         input [7:0] hi;
         input [7:0] lo;
@@ -220,6 +231,9 @@ module top_ov7670_fifo_vga (
         end
     endfunction
 
+    // Board-specific cleanup for the camera image before filters are applied.
+    // The goal is intentionally modest: suppress low-light red speckles and
+    // soften strong purple/red bias while preserving the live image.
     function [11:0] color_balance;
         input [11:0] rgb;
         reg [3:0] r;
@@ -331,6 +345,8 @@ module top_ov7670_fifo_vga (
 
         if (active_video && frame_ready) begin
             camera_rgb <= framebuffer[rd_addr];
+            // The camera's own color bars bypass image cleanup so the test
+            // pattern shows the raw configured sensor output.
             balanced_rgb <= sw[5] ? camera_rgb : soft_desaturate(color_balance(camera_rgb));
             filtered_rgb <= apply_filter(balanced_rgb, sw[4:2]);
         end else begin
@@ -344,6 +360,8 @@ module top_ov7670_fifo_vga (
     assign vgaGreen = active_video ? (sw[0] ? test_rgb[7:4]  : (sw[1] ? live_rgb[7:4]  : filtered_rgb[7:4]))  : 4'h0;
     assign vgaBlue  = active_video ? (sw[0] ? test_rgb[3:0]  : (sw[1] ? live_rgb[3:0]  : filtered_rgb[3:0]))  : 4'h0;
 
+    // LED debug map for bring-up: initialization, sync activity, pixel-clock
+    // activity, frame detection, selected debug modes, and raw switch state.
     assign led[0]  = cam_init_done;
     assign led[1]  = vsync_seen;
     assign led[2]  = href_seen;

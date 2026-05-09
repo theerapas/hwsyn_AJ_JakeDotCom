@@ -1,5 +1,8 @@
 `timescale 1ns / 1ps
 
+// Test the top-level capture path with a short synthetic RGB565 camera line.
+// The SCCB controller is bypassed so the test can focus on pixel packing,
+// horizontal downsampling, framebuffer writes, and frame-ready detection.
 module tb_top_capture_filters;
     reg CLK100MHZ = 1'b0;
     reg [7:0] sw = 8'h00;

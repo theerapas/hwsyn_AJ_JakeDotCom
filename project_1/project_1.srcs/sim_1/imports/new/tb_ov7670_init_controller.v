@@ -1,5 +1,8 @@
 `timescale 1ns / 1ps
 
+// Test the OV7670 initialization sequencer. The settle time and SCCB divider
+// are reduced for simulation, but the state-machine behavior is the same as
+// hardware: reset, wait, write the ROM table, and re-run on colorbar toggle.
 module tb_ov7670_init_controller;
     reg clk = 1'b0;
     reg reset = 1'b1;
