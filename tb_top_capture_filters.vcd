@@ -1,0 +1,347 @@
+$date
+	Sat May 09 21:24:29 2026
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1ps
+$end
+$scope module tb_top_capture_filters $end
+$var reg 1 ! CLK100MHZ $end
+$upscope $end
+$scope module tb_top_capture_filters $end
+$var reg 8 " sw [7:0] $end
+$upscope $end
+$scope module tb_top_capture_filters $end
+$var reg 8 # cam_d [7:0] $end
+$upscope $end
+$scope module tb_top_capture_filters $end
+$var reg 1 $ cam_vsync $end
+$upscope $end
+$scope module tb_top_capture_filters $end
+$var reg 1 % cam_href $end
+$upscope $end
+$scope module tb_top_capture_filters $end
+$var reg 1 & cam_pclk_buf $end
+$upscope $end
+$scope module tb_top_capture_filters $end
+$var wire 4 ' vgaRed [3:0] $end
+$upscope $end
+$scope module tb_top_capture_filters $end
+$var wire 4 ( vgaGreen [3:0] $end
+$upscope $end
+$scope module tb_top_capture_filters $end
+$var wire 4 ) vgaBlue [3:0] $end
+$upscope $end
+$scope module tb_top_capture_filters $end
+$var wire 16 * led [15:0] $end
+$upscope $end
+$scope module tb_top_capture_filters $end
+$scope module dut $end
+$var reg 10 + cap_x [9:0] $end
+$upscope $end
+$upscope $end
+$scope module tb_top_capture_filters $end
+$scope module dut $end
+$var reg 9 , cap_y [8:0] $end
+$upscope $end
+$upscope $end
+$scope module tb_top_capture_filters $end
+$scope module dut $end
+$var wire 17 - wr_addr [16:0] $end
+$upscope $end
+$upscope $end
+$scope module tb_top_capture_filters $end
+$scope module dut $end
+$var reg 12 . camera_rgb [11:0] $end
+$upscope $end
+$upscope $end
+$scope module tb_top_capture_filters $end
+$scope module dut $end
+$var reg 12 / balanced_rgb [11:0] $end
+$upscope $end
+$upscope $end
+$scope module tb_top_capture_filters $end
+$scope module dut $end
+$var reg 12 0 filtered_rgb [11:0] $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+$end
+#0
+$dumpvars
+b0 0
+b0 /
+b0 .
+b0 -
+b0 ,
+b0 +
+b1 *
+b0 )
+b0 (
+b0 '
+1&
+0%
+0$
+b0 #
+b0 "
+0!
+$end
+#5000
+1!
+#10000
+0!
+0&
+#15000
+1!
+#20000
+b100000001001 *
+0!
+1&
+#25000
+1!
+#30000
+0!
+#35000
+1!
+#40000
+0!
+0&
+#45000
+1!
+#50000
+b100000000001 *
+0!
+1&
+#55000
+1!
+#60000
+0!
+#65000
+1!
+#70000
+0!
+0&
+#75000
+1!
+#80000
+b100000001001 *
+0!
+1&
+#85000
+1!
+#90000
+0!
+#95000
+1!
+#100000
+0!
+0&
+#105000
+1!
+#110000
+b100000000001 *
+0!
+1&
+#115000
+1!
+#120000
+0!
+b110001100001 *
+1%
+b11111000 #
+#125000
+1!
+#130000
+0!
+0&
+#135000
+1!
+#140000
+b110001101101 *
+0!
+1&
+#145000
+1!
+#150000
+b110000101101 *
+0!
+b0 #
+#155000
+1!
+#160000
+0!
+0&
+#165000
+1!
+#170000
+b1 +
+b111000100101 *
+0!
+1&
+#175000
+1!
+#180000
+0!
+b111 #
+#185000
+1!
+#190000
+0!
+0&
+#195000
+1!
+#200000
+b111000101101 *
+0!
+1&
+#205000
+1!
+#210000
+b111001101101 *
+0!
+b11100000 #
+#215000
+1!
+#220000
+0!
+0&
+#225000
+1!
+#230000
+b1 -
+b10 +
+b111001100101 *
+0!
+1&
+#235000
+1!
+#240000
+b111000100101 *
+0!
+b0 #
+#245000
+1!
+#250000
+0!
+0&
+#255000
+1!
+#260000
+b111000101101 *
+0!
+1&
+#265000
+1!
+#270000
+0!
+b11111 #
+#275000
+1!
+#280000
+0!
+0&
+#285000
+1!
+#290000
+b11 +
+b111000100101 *
+0!
+1&
+#295000
+1!
+#300000
+b111001100101 *
+0!
+b11111111 #
+#305000
+1!
+#310000
+0!
+0&
+#315000
+1!
+#320000
+b111001101101 *
+0!
+1&
+#325000
+1!
+#330000
+0!
+#335000
+1!
+#340000
+0!
+0&
+#345000
+1!
+#350000
+b10 -
+b100 +
+b111001100101 *
+0!
+1&
+#355000
+1!
+#360000
+0!
+b101001000101 *
+0%
+#365000
+1!
+#370000
+0!
+0&
+#375000
+1!
+#380000
+b0 -
+b1 ,
+b0 +
+b101001001101 *
+0!
+1&
+#385000
+1!
+#390000
+0!
+b101001011101 *
+1$
+#395000
+1!
+#400000
+0!
+0&
+#405000
+1!
+#410000
+b0 ,
+b100101010111 *
+0!
+1&
+#415000
+bx .
+1!
+#420000
+0!
+b100101000111 *
+0$
+#425000
+1!
+#430000
+0!
+0&
+#435000
+1!
+#440000
+b100101001111 *
+0!
+1&
+#445000
+1!
+#450000
+0!

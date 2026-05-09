@@ -1,5 +1,15 @@
 `timescale 1ns / 1ps
 
+// Top-level video pipeline for Basys 3 + OV7670.
+//
+// Clock domains:
+// - CLK100MHZ drives SCCB camera configuration and creates the 25 MHz clock.
+// - cam_pclk_buf captures camera data in the OV7670 pixel clock domain.
+// - clk25 drives VGA timing and framebuffer reads.
+//
+// Video path:
+// OV7670 RGB565 stream -> 320x240 RGB444 framebuffer -> optional calibration,
+// gentle desaturation, and image filter -> 640x480 VGA output by 2x repetition.
 module top_ov7670_fifo_vga (
     input  wire CLK100MHZ,
     input  wire [7:0] sw,
@@ -24,11 +34,22 @@ module top_ov7670_fifo_vga (
     output wire [15:0] led
 );
 
+    // Switch map:
+    // sw[0] selects FPGA-generated VGA test bars.
+    // sw[1] selects a raw live camera-signal debug view.
+    // sw[4:2] selects normal/grayscale/invert/R/G/B output filters.
+    // sw[5] enables the OV7670 internal color-bar test pattern.
+    // sw[7:6] are currently unused, but mirrored on LEDs for visibility.
+
+    // Divide the 100 MHz board clock by 4. The resulting 25 MHz clock is used
+    // for both VGA timing and the OV7670 XCLK input.
     reg [1:0] div4 = 2'b00;
     always @(posedge CLK100MHZ) div4 <= div4 + 2'd1;
 
     wire clk25 = div4[1];
 
+    // OV7670 requires an external clock. 25 MHz works with the register
+    // configuration used in ov7670_init_rom.v.
     assign cam_xclk  = clk25;
     assign cam_pwdn  = 1'b0;
 
@@ -95,6 +116,10 @@ module top_ov7670_fifo_vga (
     wire [16:0] wr_addr =
         ({9'd0, cap_dst_y} << 8) + ({9'd0, cap_dst_y} << 6) + {8'd0, cap_dst_x};
 
+    // Camera capture. Data is sampled on the falling PCLK edge and consumed on
+    // the following rising edge, matching the timing style used by the reference
+    // OV7670 capture design. Every other source column/row is stored to convert
+    // the VGA-sized sensor stream into the required 320x240 frame.
     always @(posedge cam_pclk_buf) begin
         pclk_activity <= ~pclk_activity;
         pclk_seen <= 1'b1;
@@ -151,6 +176,8 @@ module top_ov7670_fifo_vga (
     reg [11:0] test_rgb = 12'h000;
     reg [11:0] live_rgb = 12'h000;
 
+    // Convert one OV7670 RGB565 pixel to the 12-bit RGB444 format used by the
+    // framebuffer and VGA output.
     function [11:0] rgb565_to_rgb444;
         input [7:0] hi;
         input [7:0] lo;
@@ -165,6 +192,8 @@ module top_ov7670_fifo_vga (
         end
     endfunction
 
+    // User-selectable filters. sw[4:2] selects normal, grayscale, inversion,
+    // red-only, green-only, or blue-only video.
     function [11:0] apply_filter;
         input [11:0] rgb;
         input [2:0] mode;
@@ -182,6 +211,7 @@ module top_ov7670_fifo_vga (
         end
     endfunction
 
+    // Saturating subtract helper used by the camera color calibration.
     function [3:0] sub_sat4;
         input [3:0] value;
         input [3:0] amount;
@@ -190,6 +220,20 @@ module top_ov7670_fifo_vga (
         end
     endfunction
 
+    // Saturating add helper used by the camera color calibration.
+    function [3:0] add_sat4;
+        input [3:0] value;
+        input [3:0] amount;
+        reg [4:0] sum;
+        begin
+            sum = {1'b0, value} + {1'b0, amount};
+            add_sat4 = sum[4] ? 4'hF : sum[3:0];
+        end
+    endfunction
+
+    // Board-specific cleanup for the camera image before filters are applied.
+    // The goal is intentionally modest: suppress low-light red speckles and
+    // soften strong purple/red bias while preserving the live image.
     function [11:0] color_balance;
         input [11:0] rgb;
         reg [3:0] r;
@@ -197,30 +241,89 @@ module top_ov7670_fifo_vga (
         reg [3:0] b;
         reg [3:0] max_ch;
         reg [5:0] sum_ch;
+        reg [4:0] r_ext;
+        reg [4:0] g_ext;
+        reg [4:0] b_ext;
+        reg       red_dominant;
+        reg       low_light;
+        reg       purple_dominant;
         begin
             r = rgb[11:8];
             g = rgb[7:4];
             b = rgb[3:0];
             max_ch = (r > g) ? ((r > b) ? r : b) : ((g > b) ? g : b);
             sum_ch = {2'b00, r} + {2'b00, g} + {2'b00, b};
+            r_ext = {1'b0, r};
+            g_ext = {1'b0, g};
+            b_ext = {1'b0, b};
+            red_dominant = (r_ext > g_ext + 5'd1) && (r_ext > b_ext + 5'd1);
+            low_light = (max_ch < 4'hB);
+            purple_dominant = (r_ext > g_ext + 5'd1) && (b_ext > g_ext + 5'd1);
 
             // Board/camera calibration:
-            // - clamp chroma speckles near black
-            // - subtract the OV7670 red pedestal seen in shadows
-            // - reduce the green tint from this sensor/module setup
+            // - clamp only the darkest pixels and red-only low-light speckles
+            // - trim purple/red bias without crushing low-light detail
             // SW5 bypasses this path for raw sensor color-bar debugging.
-            if ((max_ch < 4'h4) || (sum_ch < 6'd12) || ((r > g) && (r > b) && (r < 4'h8) && (g < 4'h5) && (b < 4'h5))) begin
+            if ((max_ch < 4'h2) ||
+                (sum_ch < 6'd5) ||
+                (low_light && (g < 4'h3) && (b < 4'h3) && red_dominant)) begin
                 color_balance = 12'h000;
-            end else begin
-                // The OV7670 tends to leave a red pedestal in shadows on this setup.
-                if (max_ch < 4'h7)
-                    r = sub_sat4(r, 4'h3);
+            end else if (purple_dominant) begin
+                r = sub_sat4(r, 4'h1);
+                b = sub_sat4(b, 4'h1);
+                if (g < 4'hE)
+                    g = add_sat4(g, 4'h1);
+                color_balance = {r, g, b};
+            end else if (red_dominant) begin
+                if (max_ch < 4'hC)
+                    r = sub_sat4(r, 4'h2);
                 else
                     r = sub_sat4(r, 4'h1);
-
-                g = sub_sat4(g, 4'h1);
+                color_balance = {r, g, b};
+            end else begin
                 color_balance = {r, g, b};
             end
+        end
+    endfunction
+
+    // Slightly reduce saturation by moving only strongly biased channels one
+    // step toward luma. The deadband keeps normal colors from looking washed out.
+    function [11:0] soft_desaturate;
+        input [11:0] rgb;
+        reg [3:0] r;
+        reg [3:0] g;
+        reg [3:0] b;
+        reg [3:0] gray;
+        reg [4:0] r_ext;
+        reg [4:0] g_ext;
+        reg [4:0] b_ext;
+        reg [4:0] gray_ext;
+        begin
+            r = rgb[11:8];
+            g = rgb[7:4];
+            b = rgb[3:0];
+            gray = ({2'b00, r} + {2'b00, g, 1'b0} + {2'b00, b}) >> 2;
+            r_ext = {1'b0, r};
+            g_ext = {1'b0, g};
+            b_ext = {1'b0, b};
+            gray_ext = {1'b0, gray};
+
+            if (r_ext > gray_ext + 5'd1)
+                r = sub_sat4(r, 4'h1);
+            else if (gray_ext > r_ext + 5'd1)
+                r = add_sat4(r, 4'h1);
+
+            if (g_ext > gray_ext + 5'd1)
+                g = sub_sat4(g, 4'h1);
+            else if (gray_ext > g_ext + 5'd1)
+                g = add_sat4(g, 4'h1);
+
+            if (b_ext > gray_ext + 5'd1)
+                b = sub_sat4(b, 4'h1);
+            else if (gray_ext > b_ext + 5'd1)
+                b = add_sat4(b, 4'h1);
+
+            soft_desaturate = {r, g, b};
         end
     endfunction
 
@@ -242,7 +345,9 @@ module top_ov7670_fifo_vga (
 
         if (active_video && frame_ready) begin
             camera_rgb <= framebuffer[rd_addr];
-            balanced_rgb <= sw[5] ? camera_rgb : color_balance(camera_rgb);
+            // The camera's own color bars bypass image cleanup so the test
+            // pattern shows the raw configured sensor output.
+            balanced_rgb <= sw[5] ? camera_rgb : soft_desaturate(color_balance(camera_rgb));
             filtered_rgb <= apply_filter(balanced_rgb, sw[4:2]);
         end else begin
             camera_rgb <= 12'h000;
@@ -255,6 +360,8 @@ module top_ov7670_fifo_vga (
     assign vgaGreen = active_video ? (sw[0] ? test_rgb[7:4]  : (sw[1] ? live_rgb[7:4]  : filtered_rgb[7:4]))  : 4'h0;
     assign vgaBlue  = active_video ? (sw[0] ? test_rgb[3:0]  : (sw[1] ? live_rgb[3:0]  : filtered_rgb[3:0]))  : 4'h0;
 
+    // LED debug map for bring-up: initialization, sync activity, pixel-clock
+    // activity, frame detection, selected debug modes, and raw switch state.
     assign led[0]  = cam_init_done;
     assign led[1]  = vsync_seen;
     assign led[2]  = href_seen;

@@ -1,4 +1,14 @@
-module ov7670_init_controller (
+// OV7670 configuration sequencer.
+//
+// The controller resets the camera, waits for it to settle, then writes the
+// register table from ov7670_init_rom.v over SCCB. Toggling colorbar causes the
+// sequence to run again, which is useful for showing the sensor's internal test
+// pattern during debugging/demo.
+module ov7670_init_controller #(
+    // Keep reset/settle timing long in hardware, but allow fast simulation.
+    parameter integer SETTLE_CYCLES = 200000,
+    parameter integer SCCB_DIV = 2000
+) (
     input  wire clk,
     input  wire reset,
     input  wire colorbar,
@@ -27,7 +37,9 @@ module ov7670_init_controller (
         .data     (rom_word)
     );
 
-    sccb_write_byte sccb_u (
+    sccb_write_byte #(
+        .DIV(SCCB_DIV)
+    ) sccb_u (
         .clk         (clk),
         .reset       (reset),
         .start       (start_tx),
@@ -74,9 +86,10 @@ module ov7670_init_controller (
                 active_colorbar <= colorbar_sync;
                 colorbar_d <= colorbar_sync;
             end else case (state)
+                // Hold OV7670 reset low long enough for a clean reconfiguration.
                 S_RESET: begin
                     camera_reset <= 1'b0;
-                    if (wait_ctr < 20'd200000) begin
+                    if (wait_ctr < SETTLE_CYCLES) begin
                         wait_ctr <= wait_ctr + 1'd1;
                     end else begin
                         camera_reset <= 1'b1;
@@ -85,15 +98,17 @@ module ov7670_init_controller (
                     end
                 end
 
+                // Allow the sensor clock/reset state to settle before SCCB.
                 S_WAIT: begin
                     camera_reset <= 1'b1;
-                    if (wait_ctr < 20'd200000) begin
+                    if (wait_ctr < SETTLE_CYCLES) begin
                         wait_ctr <= wait_ctr + 1'd1; // initial settle
                     end else begin
                         state <= S_LOAD;
                     end
                 end
 
+                // Read the next ROM command. FFFE is a delay marker; FFFF ends.
                 S_LOAD: begin
                     if (rom_word == 16'hFFFF) begin
                         state <= S_DONE;

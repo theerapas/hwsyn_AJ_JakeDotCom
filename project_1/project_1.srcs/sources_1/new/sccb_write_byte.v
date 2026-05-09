@@ -1,4 +1,15 @@
-module sccb_write_byte (
+// Single-register SCCB write engine for the OV7670.
+//
+// A transaction sends:
+//   device write address, register address, register data
+// Each byte is followed by a don't-care/ack bit as required by SCCB. SIOD is
+// driven as an open-drain signal: the FPGA only drives low and otherwise
+// releases the line so the pull-up can create logic high.
+module sccb_write_byte #(
+    // Hardware default is about 25 kHz from the 100 MHz board clock. The value
+    // can be overridden by testbenches so SCCB waveforms simulate quickly.
+    parameter integer DIV = 2000
+) (
     input  wire clk,
     input  wire reset,
     input  wire start,
@@ -10,8 +21,6 @@ module sccb_write_byte (
     output reg  busy = 1'b0,
     output reg  done = 1'b0
 );
-    localparam DIV = 2000; // ~25kHz from 100MHz; safer with weak/internal pullups
-
     reg [15:0] divcnt = 0;
     reg scl = 1'b1;
     reg tick = 1'b0;
@@ -102,6 +111,7 @@ module sccb_write_byte (
                         end
                     end
 
+                    // STOP condition: SDA/SIOD rises while SIOC is already high.
                     I_STOP0: begin
                         sda_oe <= 1'b1;
                         scl <= 1'b0;

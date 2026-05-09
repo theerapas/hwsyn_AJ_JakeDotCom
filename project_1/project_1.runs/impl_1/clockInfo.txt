@@ -1,6 +1,6 @@
 -------------------------------------
 | Tool Version : Vivado v.2025.2
-| Date         : Wed May  6 15:14:13 2026
+| Date         : Sat May  9 21:42:20 2026
 | Host         : tim_notebook
 | Design       : design_1
 | Device       : xc7a35t-cpg236-1--
