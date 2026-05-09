@@ -8,8 +8,8 @@
 // - clk25 drives VGA timing and framebuffer reads.
 //
 // Video path:
-// OV7670 RGB565 stream -> 320x240 RGB444 framebuffer -> optional calibration
-// and image filter -> 640x480 VGA output by 2x pixel/line repetition.
+// OV7670 RGB565 stream -> 320x240 RGB444 framebuffer -> optional calibration,
+// gentle desaturation, and image filter -> 640x480 VGA output by 2x repetition.
 module top_ov7670_fifo_vga (
     input  wire CLK100MHZ,
     input  wire [7:0] sw,
@@ -272,6 +272,47 @@ module top_ov7670_fifo_vga (
         end
     endfunction
 
+    // Slightly reduce saturation by moving only strongly biased channels one
+    // step toward luma. The deadband keeps normal colors from looking washed out.
+    function [11:0] soft_desaturate;
+        input [11:0] rgb;
+        reg [3:0] r;
+        reg [3:0] g;
+        reg [3:0] b;
+        reg [3:0] gray;
+        reg [4:0] r_ext;
+        reg [4:0] g_ext;
+        reg [4:0] b_ext;
+        reg [4:0] gray_ext;
+        begin
+            r = rgb[11:8];
+            g = rgb[7:4];
+            b = rgb[3:0];
+            gray = ({2'b00, r} + {2'b00, g, 1'b0} + {2'b00, b}) >> 2;
+            r_ext = {1'b0, r};
+            g_ext = {1'b0, g};
+            b_ext = {1'b0, b};
+            gray_ext = {1'b0, gray};
+
+            if (r_ext > gray_ext + 5'd1)
+                r = sub_sat4(r, 4'h1);
+            else if (gray_ext > r_ext + 5'd1)
+                r = add_sat4(r, 4'h1);
+
+            if (g_ext > gray_ext + 5'd1)
+                g = sub_sat4(g, 4'h1);
+            else if (gray_ext > g_ext + 5'd1)
+                g = add_sat4(g, 4'h1);
+
+            if (b_ext > gray_ext + 5'd1)
+                b = sub_sat4(b, 4'h1);
+            else if (gray_ext > b_ext + 5'd1)
+                b = add_sat4(b, 4'h1);
+
+            soft_desaturate = {r, g, b};
+        end
+    endfunction
+
     always @(posedge clk25) begin
         if (sx < 80)       test_rgb <= 12'hF00;
         else if (sx < 160) test_rgb <= 12'h0F0;
@@ -290,7 +331,7 @@ module top_ov7670_fifo_vga (
 
         if (active_video && frame_ready) begin
             camera_rgb <= framebuffer[rd_addr];
-            balanced_rgb <= sw[5] ? camera_rgb : color_balance(camera_rgb);
+            balanced_rgb <= sw[5] ? camera_rgb : soft_desaturate(color_balance(camera_rgb));
             filtered_rgb <= apply_filter(balanced_rgb, sw[4:2]);
         end else begin
             camera_rgb <= 12'h000;
