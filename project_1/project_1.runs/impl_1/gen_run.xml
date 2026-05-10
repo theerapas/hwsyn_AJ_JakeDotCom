@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<GenRun Id="impl_1" LaunchPart="xc7a35tcpg236-1" LaunchTime="1778337615">
+<GenRun Id="impl_1" LaunchPart="xc7a35tcpg236-1" LaunchTime="1778420221">
   <File Type="PA-TCL" Name="top_ov7670_fifo_vga.tcl"/>
   <File Type="REPORTS-TCL" Name="top_ov7670_fifo_vga_reports.tcl"/>
   <File Type="INIT-TIMING" Name="top_ov7670_fifo_vga_timing_summary_init.rpt"/>

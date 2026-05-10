@@ -1,4 +1,4 @@
-set_property SRC_FILE_INFO {cfile:C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/Project/project_1/project_1.srcs/constrs_1/new/basys3_ov7670_fifo.xdc rfile:../../../project_1.srcs/constrs_1/new/basys3_ov7670_fifo.xdc id:1} [current_design]
+set_property SRC_FILE_INFO {cfile:C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/project_copy/hwsyn_AJ_JakeDotCom/project_1/project_1.srcs/constrs_1/new/basys3_ov7670_fifo.xdc rfile:../../../project_1.srcs/constrs_1/new/basys3_ov7670_fifo.xdc id:1} [current_design]
 set_property src_info {type:XDC file:1 line:2 export:INPUT save:INPUT read:READ} [current_design]
 set_property -dict { PACKAGE_PIN W5 IOSTANDARD LVCMOS33 } [get_ports CLK100MHZ]
 set_property src_info {type:XDC file:1 line:11 export:INPUT save:INPUT read:READ} [current_design]
