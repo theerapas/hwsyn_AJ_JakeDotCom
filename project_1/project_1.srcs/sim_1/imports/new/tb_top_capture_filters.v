@@ -21,8 +21,13 @@ module tb_top_capture_filters;
     wire Hsync;
     wire Vsync;
     wire [15:0] led;
+    wire [11:0] framebuffer0_probe;
+    wire [11:0] framebuffer1_probe;
 
     always #5 CLK100MHZ = ~CLK100MHZ;
+
+    assign framebuffer0_probe = dut.framebuffer[0];
+    assign framebuffer1_probe = dut.framebuffer[1];
 
     top_ov7670_fifo_vga dut (
         .CLK100MHZ(CLK100MHZ),
@@ -80,12 +85,21 @@ module tb_top_capture_filters;
         $dumpvars(0, tb_top_capture_filters.vgaGreen);
         $dumpvars(0, tb_top_capture_filters.vgaBlue);
         $dumpvars(0, tb_top_capture_filters.led);
+        $dumpvars(0, tb_top_capture_filters.dut.latched_d);
+        $dumpvars(0, tb_top_capture_filters.dut.latched_href);
+        $dumpvars(0, tb_top_capture_filters.dut.latched_vsync);
+        $dumpvars(0, tb_top_capture_filters.dut.byte_phase);
+        $dumpvars(0, tb_top_capture_filters.dut.byte_hi);
         $dumpvars(0, tb_top_capture_filters.dut.cap_x);
         $dumpvars(0, tb_top_capture_filters.dut.cap_y);
+        $dumpvars(0, tb_top_capture_filters.dut.cap_dst_x);
+        $dumpvars(0, tb_top_capture_filters.dut.cap_dst_y);
         $dumpvars(0, tb_top_capture_filters.dut.wr_addr);
-        $dumpvars(0, tb_top_capture_filters.dut.camera_rgb);
-        $dumpvars(0, tb_top_capture_filters.dut.balanced_rgb);
-        $dumpvars(0, tb_top_capture_filters.dut.filtered_rgb);
+        $dumpvars(0, tb_top_capture_filters.dut.frame_ready);
+        $dumpvars(0, tb_top_capture_filters.dut.frame_seen);
+        $dumpvars(0, tb_top_capture_filters.dut.pixel_seen);
+        $dumpvars(0, tb_top_capture_filters.framebuffer0_probe);
+        $dumpvars(0, tb_top_capture_filters.framebuffer1_probe);
 
         force dut.cam_init_done = 1'b1;
 
@@ -94,8 +108,26 @@ module tb_top_capture_filters;
         // Four RGB565 source pixels. The capture logic stores source pixels
         // 0 and 2 because it downsamples horizontally by 2.
         send_cam_byte(8'hF8); send_cam_byte(8'h00); // red   -> framebuffer[0]
+        if (dut.byte_phase != 1'b0 || dut.cap_x != 10'd1 || dut.framebuffer[0] != 12'hF00) begin
+            $display("FAIL: red pixel capture failed. byte_phase=%b cap_x=%0d framebuffer[0]=%h",
+                     dut.byte_phase, dut.cap_x, dut.framebuffer[0]);
+            $finish;
+        end
+
         send_cam_byte(8'h07); send_cam_byte(8'hE0); // green -> skipped
+        if (dut.cap_x != 10'd2 || dut.framebuffer[1] === 12'h0F0) begin
+            $display("FAIL: green pixel should have been skipped. cap_x=%0d framebuffer[1]=%h",
+                     dut.cap_x, dut.framebuffer[1]);
+            $finish;
+        end
+
         send_cam_byte(8'h00); send_cam_byte(8'h1F); // blue  -> framebuffer[1]
+        if (dut.byte_phase != 1'b0 || dut.cap_x != 10'd3 || dut.framebuffer[1] != 12'h00F) begin
+            $display("FAIL: blue pixel capture failed. byte_phase=%b cap_x=%0d framebuffer[1]=%h",
+                     dut.byte_phase, dut.cap_x, dut.framebuffer[1]);
+            $finish;
+        end
+
         send_cam_byte(8'hFF); send_cam_byte(8'hFF); // white -> skipped
 
         send_blank_pclk(1'b0, 1'b0);
