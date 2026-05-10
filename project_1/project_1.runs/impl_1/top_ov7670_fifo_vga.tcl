@@ -1,5 +1,5 @@
 namespace eval ::optrace {
-  variable script "C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/Project/project_1/project_1.runs/impl_1/top_ov7670_fifo_vga.tcl"
+  variable script "C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/project_copy/hwsyn_AJ_JakeDotCom/project_1/project_1.runs/impl_1/top_ov7670_fifo_vga.tcl"
   variable category "vivado_impl"
 }
 
@@ -114,15 +114,15 @@ OPTRACE "create in-memory project" START { }
   set_param project.singleFileAddWarning.threshold 0
 OPTRACE "create in-memory project" END { }
 OPTRACE "set parameters" START { }
-  set_property webtalk.parent_dir C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/Project/project_1/project_1.cache/wt [current_project]
-  set_property parent.project_path C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/Project/project_1/project_1.xpr [current_project]
-  set_property ip_output_repo C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/Project/project_1/project_1.cache/ip [current_project]
+  set_property webtalk.parent_dir C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/project_copy/hwsyn_AJ_JakeDotCom/project_1/project_1.cache/wt [current_project]
+  set_property parent.project_path C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/project_copy/hwsyn_AJ_JakeDotCom/project_1/project_1.xpr [current_project]
+  set_property ip_output_repo C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/project_copy/hwsyn_AJ_JakeDotCom/project_1/project_1.cache/ip [current_project]
   set_property ip_cache_permissions {read write} [current_project]
 OPTRACE "set parameters" END { }
 OPTRACE "add files" START { }
-  add_files -quiet C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/Project/project_1/project_1.runs/synth_1/top_ov7670_fifo_vga.dcp
+  add_files -quiet C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/project_copy/hwsyn_AJ_JakeDotCom/project_1/project_1.runs/synth_1/top_ov7670_fifo_vga.dcp
 OPTRACE "read constraints: implementation" START { }
-  read_xdc C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/Project/project_1/project_1.srcs/constrs_1/new/basys3_ov7670_fifo.xdc
+  read_xdc C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/project_copy/hwsyn_AJ_JakeDotCom/project_1/project_1.srcs/constrs_1/new/basys3_ov7670_fifo.xdc
 OPTRACE "read constraints: implementation" END { }
 OPTRACE "read constraints: implementation_pre" START { }
 OPTRACE "read constraints: implementation_pre" END { }

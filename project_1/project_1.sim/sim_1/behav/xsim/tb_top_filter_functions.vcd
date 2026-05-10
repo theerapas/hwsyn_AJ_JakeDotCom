@@ -1,0 +1,58 @@
+$date
+   Sun May 10 20:45:24 2026
+$end
+
+$version
+  2025.2
+  $dumpfile ("tb_top_filter_functions.vcd") 
+$end
+
+$timescale
+  1ps
+$end
+
+$scope module tb_top_filter_functions $end
+$var reg 12 ! rgb_in [11:0] $end
+$var reg 3 " mode [2:0] $end
+$var reg 12 # rgb565_out [11:0] $end
+$var reg 12 $ filter_out [11:0] $end
+$upscope $end
+$enddefinitions $end
+
+#0
+$dumpvars
+b0 !
+b0 "
+b111100000000 #
+b0 $
+$end
+
+#1000
+b11110000 #
+
+#2000
+b1111 #
+
+#3000
+b1101101001 !
+b1101101001 $
+
+#4000
+b1 "
+b11001100110 $
+
+#5000
+b10 "
+b110010010110 $
+
+#6000
+b11 "
+b1100000000 $
+
+#7000
+b100 "
+b1100000 $
+
+#8000
+b101 "
+b1001 $
