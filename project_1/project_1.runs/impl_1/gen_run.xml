@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<GenRun Id="impl_1" LaunchPart="xc7a35tcpg236-1" LaunchTime="1778420221">
+<GenRun Id="impl_1" LaunchPart="xc7a35tcpg236-1" LaunchTime="1778582209">
   <File Type="PA-TCL" Name="top_ov7670_fifo_vga.tcl"/>
   <File Type="REPORTS-TCL" Name="top_ov7670_fifo_vga_reports.tcl"/>
   <File Type="INIT-TIMING" Name="top_ov7670_fifo_vga_timing_summary_init.rpt"/>
@@ -115,6 +115,15 @@
   <File Type="POSTROUTE-PHYSOPT-RQS-RPT" Name="postroute_physopt_report_qor_suggestions_0.rpt"/>
   <FileSet Name="sources" Type="DesignSrcs" RelSrcDir="$PSRCDIR/sources_1" RelGenDir="$PGENDIR/sources_1">
     <Filter Type="Srcs"/>
+    <File Path="$PSRCDIR/sources_1/imports/extra_code/bilinear_upscaler_4x.v">
+      <FileInfo>
+        <Attr Name="ImportPath" Val="$PPRDIR/../../extra_code/bilinear_upscaler_4x.v"/>
+        <Attr Name="ImportTime" Val="1778577584"/>
+        <Attr Name="UsedIn" Val="synthesis"/>
+        <Attr Name="UsedIn" Val="implementation"/>
+        <Attr Name="UsedIn" Val="simulation"/>
+      </FileInfo>
+    </File>
     <File Path="$PSRCDIR/sources_1/new/ov7670_init_controller.v">
       <FileInfo>
         <Attr Name="UsedIn" Val="synthesis"/>
@@ -138,6 +147,15 @@
     </File>
     <File Path="$PSRCDIR/sources_1/new/vga_640x480.v">
       <FileInfo>
+        <Attr Name="UsedIn" Val="synthesis"/>
+        <Attr Name="UsedIn" Val="implementation"/>
+        <Attr Name="UsedIn" Val="simulation"/>
+      </FileInfo>
+    </File>
+    <File Path="$PSRCDIR/sources_1/imports/extra_code/vga_clock_108.v">
+      <FileInfo>
+        <Attr Name="ImportPath" Val="$PPRDIR/../../extra_code/vga_clock_108.v"/>
+        <Attr Name="ImportTime" Val="1778576201"/>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>
         <Attr Name="UsedIn" Val="simulation"/>

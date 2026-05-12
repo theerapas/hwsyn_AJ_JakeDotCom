@@ -36,9 +36,11 @@ module ov7670_init_rom (
             8'h13: data = 16'h589E;
             8'h14: data = 16'h3DC0;
             8'h15: data = 16'h1100;
-            8'h16: data = 16'h1711;
-            8'h17: data = 16'h1861;
-            8'h18: data = 16'h32A4;
+            // Horizontal output window. These values move the active image
+            // away from the sensor's left color-bar/blanking edge region.
+            8'h16: data = 16'h1715;
+            8'h17: data = 16'h1802;
+            8'h18: data = 16'h3280;
             8'h19: data = 16'h1903;
             8'h1A: data = 16'h1A7B;
             8'h1B: data = 16'h030A;

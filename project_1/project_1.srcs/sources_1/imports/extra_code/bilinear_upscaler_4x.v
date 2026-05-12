@@ -19,7 +19,6 @@ module bilinear_upscaler_4x (
 );
     localparam FRAME_WIDTH  = 320;
     localparam FRAME_HEIGHT = 240;
-
     (* ram_style = "distributed" *) reg [11:0] row0_a [0:FRAME_WIDTH-1];
     (* ram_style = "distributed" *) reg [11:0] row1_a [0:FRAME_WIDTH-1];
     (* ram_style = "distributed" *) reg [11:0] row0_b [0:FRAME_WIDTH-1];
