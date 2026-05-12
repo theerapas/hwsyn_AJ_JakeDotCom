@@ -57,6 +57,8 @@ if {$::dispatch::connected} {
 
 OPTRACE "synth_1" START { ROLLUP_AUTO }
 set_param general.usePosixSpawnForFork 1
+set_param chipscope.maxJobs 4
+set_param xicom.use_bs_reader 1
 OPTRACE "Creating in-memory project" START { }
 create_project -in_memory -part xc7a35tcpg236-1
 
@@ -73,10 +75,12 @@ set_property ip_cache_permissions {read write} [current_project]
 OPTRACE "Creating in-memory project" END { }
 OPTRACE "Adding files" START { }
 read_verilog -library xil_defaultlib {
+  C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/project_copy/hwsyn_AJ_JakeDotCom/project_1/project_1.srcs/sources_1/new/bilinear_upscaler_4x.v
   C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/project_copy/hwsyn_AJ_JakeDotCom/project_1/project_1.srcs/sources_1/new/ov7670_init_controller.v
   C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/project_copy/hwsyn_AJ_JakeDotCom/project_1/project_1.srcs/sources_1/new/ov7670_init_rom.v
   C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/project_copy/hwsyn_AJ_JakeDotCom/project_1/project_1.srcs/sources_1/new/sccb_write_byte.v
   C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/project_copy/hwsyn_AJ_JakeDotCom/project_1/project_1.srcs/sources_1/new/vga_640x480.v
+  C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/project_copy/hwsyn_AJ_JakeDotCom/project_1/project_1.srcs/sources_1/new/vga_clock_108.v
   C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/project_copy/hwsyn_AJ_JakeDotCom/project_1/project_1.srcs/sources_1/new/top_ov7670_fifo_vga.v
 }
 OPTRACE "Adding files" END { }
