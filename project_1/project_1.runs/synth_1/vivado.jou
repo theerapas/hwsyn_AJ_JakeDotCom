@@ -3,8 +3,8 @@
 # SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
 # IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
 # SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
-# Start of session at: Tue May 12 11:54:38 2026
-# Process ID         : 17736
+# Start of session at: Sun May 10 20:37:04 2026
+# Process ID         : 28008
 # Current directory  : C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/project_copy/hwsyn_AJ_JakeDotCom/project_1/project_1.runs/synth_1
 # Command line       : vivado.exe -log top_ov7670_fifo_vga.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source top_ov7670_fifo_vga.tcl
 # Log file           : C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/project_copy/hwsyn_AJ_JakeDotCom/project_1/project_1.runs/synth_1/top_ov7670_fifo_vga.vds
@@ -17,8 +17,8 @@
 # CPU Physical cores : 14
 # CPU Logical cores  : 18
 # Host memory        : 16766 MB
-# Swap memory        : 13421 MB
-# Total Virtual      : 30187 MB
-# Available Virtual  : 6393 MB
+# Swap memory        : 17179 MB
+# Total Virtual      : 33945 MB
+# Available Virtual  : 10094 MB
 #-----------------------------------------------------------
 source top_ov7670_fifo_vga.tcl -notrace
