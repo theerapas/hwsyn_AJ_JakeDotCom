@@ -1,70 +1,109 @@
-// OV7670 configuration sequencer.
+// ============================================================================
+// โมดูลตัวควบคุมลำดับการตั้งค่ากล้อง (OV7670 Configuration Sequencer)
 //
-// The controller resets the camera, waits for it to settle, then writes the
-// register table from ov7670_init_rom.v over SCCB. Toggling colorbar causes the
-// sequence to run again, which is useful for showing the sensor's internal test
-// pattern during debugging/demo.
+// หน้าที่หลัก:
+// 1. ทำการ Hardware Reset ตัวกล้อง
+// 2. หน่วงเวลาให้วงจรภายในกล้องพร้อมทำงาน
+// 3. อ่านค่าจาก ROM แล้วส่งผ่านวงจร SCCB ไปยังกล้องทีละบรรทัดจนจบ
+// 4. หากมีการสับสวิตช์ Colorbar จะทำการรีเซ็ตวงจรเพื่อตั้งค่าใหม่ทั้งหมด (On-the-fly)
+// ============================================================================
 module ov7670_init_controller #(
-    // Keep reset/settle timing long in hardware, but allow fast simulation.
+    // พารามิเตอร์สำหรับหน่วงเวลา (Delay)
+    // 200,000 cycles ที่ Clock 100MHz = หน่วงเวลา 2 มิลลิวินาที (ms)
+    // เพื่อให้เวลาวงจรอิเล็กทรอนิกส์ในกล้องเคลียร์ประจุและตั้งสติก่อนรับคำสั่ง
     parameter integer SETTLE_CYCLES = 200000,
-    parameter integer SCCB_DIV = 2000
+    parameter integer SCCB_DIV = 2000 // ตัวหารความถี่สำหรับ SCCB
 ) (
-    input  wire clk,
-    input  wire reset,
-    input  wire colorbar,
-    output reg  camera_reset = 1'b0,
-    output wire sioc,
-    inout  wire siod,
-    output reg  init_done = 1'b0
+    input  wire clk,         // สัญญาณนาฬิกาหลัก (100 MHz)
+    input  wire reset,       // สัญญาณรีเซ็ตโมดูลนี้ (ในโปรเจกต์นี้ถูกผูกกับ 0 ไว้)
+    input  wire colorbar,    // สัญญาณจากสวิตช์บนบอร์ด เพื่อเปิด/ปิดแถบสีทดสอบ
+    output reg  camera_reset = 1'b0, // ขาที่ต่อตรงไปที่พิน RESET ของตัวกล้อง (Active-Low)
+    output wire sioc,        // สัญญาณ Clock ของ SCCB
+    inout  wire siod,        // สัญญาณ Data ของ SCCB
+    output reg  init_done = 1'b0     // ธง (Flag) ประกาศว่าตั้งค่ากล้องเสร็จสมบูรณ์แล้ว
 );
-    reg [19:0] wait_ctr = 20'd0;
-    reg start_tx = 1'b0;
-    reg [7:0] tx_reg_addr = 8'h00;
-    reg [7:0] tx_reg_data = 8'h00;
-    wire tx_busy;
-    wire tx_done;
 
-    reg [7:0] rom_addr = 8'd0;
-    wire [15:0] rom_word;
-    reg colorbar_d = 1'b0;
-    reg active_colorbar = 1'b0;
-    reg colorbar_meta = 1'b0;
-    reg colorbar_sync = 1'b0;
 
+    // ============================================================================
+    // ส่วนที่ 1: ตัวแปรภายในสำหรับเชื่อมต่อและนับเวลา
+    // ============================================================================
+    reg [19:0] wait_ctr = 20'd0; // ตัวนับเวลาขนาด 20 บิต (นับได้สูงสุดประมาณ 1 ล้าน)
+   
+    // กลุ่มตัวแปรสำหรับสื่อสารกับลูกน้องคนที่ 1 (SCCB Transmitter)
+    reg start_tx = 1'b0;         // สั่งให้ SCCB เริ่มส่งข้อมูล
+    reg [7:0] tx_reg_addr = 8'h00; // ตำแหน่งรีจิสเตอร์ที่จะฝากส่ง
+    reg [7:0] tx_reg_data = 8'h00; // ข้อมูลที่จะฝากส่ง
+    wire tx_busy;                // สถานะจาก SCCB บอกว่า "สายไม่ว่าง"
+    wire tx_done;                // สถานะจาก SCCB บอกว่า "ส่งเสร็จแล้ว"
+
+
+    // กลุ่มตัวแปรสำหรับสื่อสารกับลูกน้องคนที่ 2 (ROM)
+    reg [7:0] rom_addr = 8'd0;   // บรรทัดของ ROM ที่ต้องการอ่าน
+    wire [15:0] rom_word;        // ข้อมูล 16 บิตที่ ROM คายออกมาให้
+
+
+    // ตัวแปรสำหรับวงจรซิงโครไนซ์สวิตช์ (Switch Synchronizer)
+    reg colorbar_d = 1'b0;       // เก็บค่าสถานะสวิตช์ในอดีต (เพื่อหาขอบสัญญาณ)
+    reg active_colorbar = 1'b0;  // สถานะ Colorbar ที่จะส่งไปให้ ROM ตัดสินใจ
+    reg colorbar_meta = 1'b0;    // ตัวกันกระแทกชั้นที่ 1 (Metastability filter)
+    reg colorbar_sync = 1'b0;    // ตัวกันกระแทกชั้นที่ 2 (ทำให้สัญญาณนิ่ง 100%)
+
+
+    // ============================================================================
+    // ส่วนที่ 2: การเรียกใช้ลูกน้อง (Sub-module Instantiation)
+    // ============================================================================
+   
+    // ลูกน้องคนที่ 1: แผนกคลังข้อมูล (ROM)
     ov7670_init_rom rom_u (
-        .addr     (rom_addr),
-        .colorbar (active_colorbar),
-        .data     (rom_word)
+        .addr     (rom_addr),        // ส่งเลขบรรทัดไปถาม
+        .colorbar (active_colorbar), // ส่งสถานะสวิตช์ไปให้เลือกค่า
+        .data     (rom_word)         // รับข้อมูล 16 บิตกลับมา
     );
 
+
+    // ลูกน้องคนที่ 2: แผนกส่งสาร (SCCB Engine)
     sccb_write_byte #(
         .DIV(SCCB_DIV)
     ) sccb_u (
         .clk         (clk),
         .reset       (reset),
-        .start       (start_tx),
-        .dev_addr    (8'h42),  // OV7670 write address
-        .reg_addr    (tx_reg_addr),
-        .reg_data    (tx_reg_data),
+        .start       (start_tx),     // สัญญาณลั่นไก
+        .dev_addr    (8'h42),        // ID ของกล้อง OV7670 สำหรับเขียนข้อมูล
+        .reg_addr    (tx_reg_addr),  // ที่อยู่รีจิสเตอร์
+        .reg_data    (tx_reg_data),  // ข้อมูลที่จะเขียน
         .sioc        (sioc),
         .siod        (siod),
-        .busy        (tx_busy),
-        .done        (tx_done)
+        .busy        (tx_busy),      // รอรับสถานะไม่ว่าง
+        .done        (tx_done)       // รอรับสถานะส่งเสร็จ
     );
 
-    localparam S_RESET = 3'd0;
-    localparam S_WAIT  = 3'd1;
-    localparam S_LOAD  = 3'd2;
-    localparam S_START = 3'd3;
-    localparam S_NEXT  = 3'd4;
-    localparam S_DONE  = 3'd5;
+
+    // ============================================================================
+    // ส่วนที่ 3: เครื่องจักรสถานะ (Finite State Machine - FSM)
+    // ============================================================================
+    // ประกาศชื่อสถานะต่างๆ ให้โค้ดอ่านง่าย (เข้ารหัสแบบตัวเลข 3 บิต)
+    localparam S_RESET = 3'd0; // สถานะ: กดปุ่มรีเซ็ตกล้องแช่ไว้
+    localparam S_WAIT  = 3'd1; // สถานะ: ปล่อยปุ่มรีเซ็ตและรอให้กล้องฟื้นตัว
+    localparam S_LOAD  = 3'd2; // สถานะ: ดึงคำสั่งจาก ROM
+    localparam S_START = 3'd3; // สถานะ: สั่ง SCCB ยิงข้อมูล
+    localparam S_NEXT  = 3'd4; // สถานะ: รอ SCCB ทำงานเสร็จ
+    localparam S_DONE  = 3'd5; // สถานะ: จบภารกิจ
+
 
     reg [2:0] state = S_RESET;
 
+
     always @(posedge clk) begin
+        // ------------------------------------------------------------------------
+        // วงจรป้องกันสัญญาณสั่นจากสวิตช์ (2-Stage Synchronizer)
+        // สวิตช์มือคนเราเวลากด มันจะมีจังหวะหน้าสัมผัสเด้ง (Bouncing) และเกิดสภาวะลอยตัว
+        // การเอาผ่าน Flip-Flop 2 ตัวแบบนี้ จะช่วยให้ฮาร์ดแวร์ไม่รวนครับ
+        // ------------------------------------------------------------------------
         colorbar_meta <= colorbar;
         colorbar_sync <= colorbar_meta;
 
+
+        // ถ้ามีการสั่ง Reset ระดับ System
         if (reset) begin
             state <= S_RESET;
             wait_ctr <= 0;
@@ -75,69 +114,111 @@ module ov7670_init_controller #(
             active_colorbar <= colorbar_sync;
             colorbar_d <= colorbar_sync;
         end else begin
-            start_tx <= 0;
+            start_tx <= 0; // เคลียร์สัญญาณลั่นไกเสมอ (ให้เป็นแค่ Pulse)
 
+
+            // ------------------------------------------------------------------------
+            // ระบบตรวจจับการสับสวิตช์เปลี่ยนโหมด On-the-fly (Edge Detection)
+            // ถ้าตั้งค่ากล้องเสร็จแล้ว (init_done=1) แต่พบว่าสถานะสวิตช์ปัจจุบัน (sync)
+            // ไม่ตรงกับอดีต (colorbar_d) แปลว่าคนดูเพิ่งสับสวิตช์! ให้เริ่มกระบวนการใหม่ทั้งหมด
+            // ------------------------------------------------------------------------
             if (init_done && (colorbar_sync != colorbar_d)) begin
-                state <= S_RESET;
+                state <= S_RESET;     // กลับไปสถานะเริ่มแรก
                 wait_ctr <= 0;
                 rom_addr <= 0;
-                init_done <= 0;
-                camera_reset <= 1'b0;
-                active_colorbar <= colorbar_sync;
-                colorbar_d <= colorbar_sync;
+                init_done <= 0;       // ดึงธงลง (สั่งให้วงจรรับภาพหยุดรับภาพชั่วคราว)
+                camera_reset <= 1'b0; // ดึงขารีเซ็ตกล้องลงกราวด์ทันที
+                active_colorbar <= colorbar_sync; // อัปเดตโหมดใหม่ให้ ROM
+                colorbar_d <= colorbar_sync;      // จำสถานะปัจจุบันไว้
+               
             end else case (state)
-                // Hold OV7670 reset low long enough for a clean reconfiguration.
+                // --------------------------------------------------------------------
+                // S_RESET: ช่วงกดปุ่มรีเซ็ตกล้องแช่ไว้ (Hardware Reset)
+                // --------------------------------------------------------------------
                 S_RESET: begin
-                    camera_reset <= 1'b0;
+                    camera_reset <= 1'b0; // Active-Low: 0 คือการสั่ง Reset กล้อง
+                   
+                    // นับเวลาไปเรื่อยๆ จนกว่าจะครบกำหนด (SETTLE_CYCLES)
                     if (wait_ctr < SETTLE_CYCLES) begin
                         wait_ctr <= wait_ctr + 1'd1;
                     end else begin
-                        camera_reset <= 1'b1;
-                        wait_ctr <= 0;
-                        state <= S_WAIT;
+                        camera_reset <= 1'b1; // ยกเลิกรีเซ็ต (ปล่อยให้กล้องเริ่มทำงาน)
+                        wait_ctr <= 0;        // เคลียร์ตัวนับเพื่อใช้ในรอบหน้า
+                        state <= S_WAIT;      // ไปสถานะรอ
                     end
                 end
 
-                // Allow the sensor clock/reset state to settle before SCCB.
+
+                // --------------------------------------------------------------------
+                // S_WAIT: ช่วงรอให้กล้องตั้งสติ (Settle Time)
+                // --------------------------------------------------------------------
                 S_WAIT: begin
-                    camera_reset <= 1'b1;
+                    camera_reset <= 1'b1; // รักษาระดับไฟให้กล้องทำงานปกติ
+                   
+                    // แม้จะปลดรีเซ็ตแล้ว แต่ Clock และวงจรในกล้องต้องใช้เวลาตื่นตัว
+                    // จึงต้องนับเวลาหน่วงแช่ไว้อีก 1 รอบ (SETTLE_CYCLES)
                     if (wait_ctr < SETTLE_CYCLES) begin
-                        wait_ctr <= wait_ctr + 1'd1; // initial settle
+                        wait_ctr <= wait_ctr + 1'd1;
                     end else begin
-                        state <= S_LOAD;
+                        state <= S_LOAD; // กล้องพร้อมแล้ว ไปโหลดคำสั่งแรกจาก ROM ได้
                     end
                 end
 
-                // Read the next ROM command. FFFE is a delay marker; FFFF ends.
+
+                // --------------------------------------------------------------------
+                // S_LOAD: ดึงคำสั่งจากแผนกคลังข้อมูล (ROM)
+                // --------------------------------------------------------------------
                 S_LOAD: begin
+                    // เช็คคำสั่งพิเศษ: FFFF คือรหัสบอกว่า "หมดตารางตั้งค่าแล้ว"
                     if (rom_word == 16'hFFFF) begin
-                        state <= S_DONE;
+                        state <= S_DONE; // ข้ามไปจบงานได้เลย
+                       
+                    // เช็คคำสั่งพิเศษ: FFFE คือรหัสบอกว่า "ให้หน่วงเวลาก่อนทำคำสั่งถัดไป"
+                    // (มักใช้แทรกไว้หลังจากคำสั่ง Software Reset ภายในกล้อง)
                     end else if (rom_word == 16'hFFFE) begin
                         wait_ctr <= 0;
-                        state <= S_WAIT;
-                        rom_addr <= rom_addr + 1'd1;
+                        state <= S_WAIT; // กลับไปสถานะรอ 1 รอบเวลา
+                        rom_addr <= rom_addr + 1'd1; // ขยับบรรทัด ROM รอไว้เลย
+                       
+                    // ถ้าเป็นคำสั่งตั้งค่าปกติ
                     end else begin
-                        tx_reg_addr <= rom_word[15:8];
-                        tx_reg_data <= rom_word[7:0];
-                        state <= S_START;
+                        tx_reg_addr <= rom_word[15:8]; // หั่น 8 บิตบนไปเป็น Register Address
+                        tx_reg_data <= rom_word[7:0];  // หั่น 8 บิตล่างไปเป็น Register Data
+                        state <= S_START; // ขยับไปสั่งลูกน้องคนที่ 1 (SCCB) ทำงาน
                     end
                 end
 
+
+                // --------------------------------------------------------------------
+                // S_START: ลั่นไกสั่งทำงาน (Trigger SCCB)
+                // --------------------------------------------------------------------
                 S_START: begin
+                    // ระบบ Handshake: เช็คก่อนว่า SCCB ว่างอยู่ใช่ไหม (!tx_busy)
                     if (!tx_busy) begin
-                        start_tx <= 1'b1;
-                        state <= S_NEXT;
+                        start_tx <= 1'b1; // ปล่อย Pulse สั่งลั่นไก!
+                        state <= S_NEXT;  // ไปรอรับของ
                     end
                 end
 
+
+                // --------------------------------------------------------------------
+                // S_NEXT: นั่งรอจนกว่าจะส่งเสร็จ (Wait for Tx Done)
+                // --------------------------------------------------------------------
                 S_NEXT: begin
+                    // ถ้า SCCB ส่งสัญญาณ tx_done กลับมา (แปลว่าส่งครบ 27 บิตแล้ว)
                     if (tx_done) begin
-                        rom_addr <= rom_addr + 1'd1;
-                        state <= S_LOAD;
+                        rom_addr <= rom_addr + 1'd1; // ขยับไปชี้บรรทัดถัดไปใน ROM
+                        state <= S_LOAD; // วนกลับไปโหลดคำสั่งบรรทัดต่อไปมาทำ
                     end
                 end
 
+
+                // --------------------------------------------------------------------
+                // S_DONE: ภารกิจสำเร็จ (Initialization Complete)
+                // --------------------------------------------------------------------
                 S_DONE: begin
+                    // ชูธง init_done เป็น 1 ค้างไว้ตลอดกาล
+                    // (สัญญาณนี้จะวิ่งไปปลดล็อคให้วงจร Capture ภาพเริ่มดึงสีจากกล้องลง BRAM)
                     init_done <= 1'b1;
                 end
             endcase

@@ -1,7 +1,7 @@
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
 ---------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
-| Date         : Wed May 13 13:43:27 2026
+| Date         : Wed May 13 15:46:32 2026
 | Host         : tim_notebook running 64-bit major release  (build 9200)
 | Command      : report_control_sets -verbose -file top_ov7670_fifo_vga_control_sets_placed.rpt
 | Design       : top_ov7670_fifo_vga
@@ -73,26 +73,26 @@ Table of Contents
 +-------------------------+---------------------------------+---------------------------------+------------------+----------------+--------------+
 |       Clock Signal      |          Enable Signal          |         Set/Reset Signal        | Slice Load Count | Bel Load Count | Bels / Slice |
 +-------------------------+---------------------------------+---------------------------------+------------------+----------------+--------------+
-|  CLK100MHZ_IBUF_BUFG    | init_u/camera_reset_i_1_n_0     | init_u/wait_ctr[19]_i_1_n_0     |                1 |              1 |         1.00 |
 |  CLK100MHZ_IBUF_BUFG    | init_u/sccb_u/scl3_out          | init_u/sccb_u/state1            |                1 |              1 |         1.00 |
+|  CLK100MHZ_IBUF_BUFG    | init_u/camera_reset_i_1_n_0     | init_u/wait_ctr[19]_i_1_n_0     |                1 |              1 |         1.00 |
 |  cam_pclk_buf_IBUF_BUFG |                                 | latched_href                    |                1 |              1 |         1.00 |
 |  cam_pclk_buf_IBUF_BUFG |                                 | latched_vsync                   |                1 |              1 |         1.00 |
 |  cam_pclk_buf_IBUF_BUFG |                                 | init_u/frame_seen               |                1 |              1 |         1.00 |
-|  cam_xclk_OBUF_BUFG     |                                 | vga_u/test_rgb10_in             |                1 |              4 |         4.00 |
 |  cam_xclk_OBUF_BUFG     |                                 | led_OBUF[4]                     |                4 |              4 |         1.00 |
 |  cam_xclk_OBUF_BUFG     |                                 | led_OBUF[5]                     |                4 |              4 |         1.00 |
+|  cam_xclk_OBUF_BUFG     |                                 | vga_u/test_rgb10_in             |                1 |              4 |         4.00 |
 |  CLK100MHZ_IBUF_BUFG    |                                 | init_u/sccb_u/state1            |                4 |              7 |         1.75 |
 |  cam_pclk_buf_IBUF_BUFG |                                 |                                 |                6 |              7 |         1.17 |
 |  CLK100MHZ_IBUF_BUFG    | init_u/sccb_u/E[0]              | init_u/wait_ctr[19]_i_1_n_0     |                3 |              8 |         2.67 |
 |  cam_pclk_buf_IBUF_BUFG | init_u/E[0]                     |                                 |                7 |              8 |         1.14 |
 |  cam_pclk_buf_IBUF_BUFG | cap_y                           | init_u/SR[0]                    |                2 |              9 |         4.50 |
+|  cam_xclk_OBUF_BUFG     | vga_u/p_0_in                    |                                 |                3 |             10 |         3.33 |
 |  CLK100MHZ_IBUF_BUFG    | init_u/sccb_u/shreg[17]_i_1_n_0 | init_u/sccb_u/shreg[26]_i_1_n_0 |                3 |             10 |         3.33 |
 | ~cam_pclk_buf_IBUF_BUFG |                                 |                                 |               10 |             10 |         1.00 |
-|  cam_xclk_OBUF_BUFG     | vga_u/p_0_in                    |                                 |                3 |             10 |         3.33 |
 |  CLK100MHZ_IBUF_BUFG    |                                 | init_u/sccb_u/tick              |                3 |             11 |         3.67 |
 |  cam_xclk_OBUF_BUFG     |                                 |                                 |                9 |             14 |         1.56 |
-|  CLK100MHZ_IBUF_BUFG    | init_u/tx_reg_data[7]_i_1_n_0   |                                 |               10 |             16 |         1.60 |
 |  cam_xclk_OBUF_BUFG     |                                 | vga_u/frame_ready_reg_0         |                9 |             16 |         1.78 |
+|  CLK100MHZ_IBUF_BUFG    | init_u/tx_reg_data[7]_i_1_n_0   |                                 |               10 |             16 |         1.60 |
 |  CLK100MHZ_IBUF_BUFG    |                                 |                                 |                9 |             17 |         1.89 |
 |  CLK100MHZ_IBUF_BUFG    | init_u/sccb_u/shreg[17]_i_1_n_0 |                                 |                6 |             17 |         2.83 |
 |  cam_xclk_OBUF_BUFG     |                                 | vga_u/p_0_in                    |                8 |             18 |         2.25 |
