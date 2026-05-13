@@ -1,7 +1,7 @@
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
-| Date         : Sun May 10 20:39:18 2026
+| Date         : Wed May 13 13:43:56 2026
 | Host         : tim_notebook running 64-bit major release  (build 9200)
 | Command      : report_methodology -file top_ov7670_fifo_vga_methodology_drc_routed.rpt -pb top_ov7670_fifo_vga_methodology_drc_routed.pb -rpx top_ov7670_fifo_vga_methodology_drc_routed.rpx
 | Design       : top_ov7670_fifo_vga
@@ -362,7 +362,7 @@ Related violations: <none>
 
 TIMING-17#66 Critical Warning
 Non-clocked sequential cell  
-The clock pin framebuffer_reg_0_0_cooolgate_en_gate_73_cooolDelFlop/C is not reached by a timing clock
+The clock pin framebuffer_reg_0_0_cooolgate_en_gate_25_cooolDelFlop/C is not reached by a timing clock
 Related violations: <none>
 
 TIMING-17#67 Critical Warning
