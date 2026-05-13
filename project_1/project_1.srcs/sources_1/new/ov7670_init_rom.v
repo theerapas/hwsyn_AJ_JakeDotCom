@@ -1,35 +1,47 @@
-// Register ROM for OV7670 RGB565 operation.
+// ============================================================================
+// โมดูลหน่วยความจำ ROM สำหรับเก็บค่า Register ของกล้อง OV7670 (โหมด RGB565)
 //
-// Each entry is {register_address, register_value}. Special words:
-// - 16'hFFFE: delay marker handled by ov7670_init_controller
-// - 16'hFFFF: end of table
+// รูปแบบข้อมูล: ข้อมูลแต่ละชุดมีขนาด 16 บิต แบ่งเป็น {ที่อยู่ Register 8 บิต, ค่าที่จะเขียน 8 บิต}
+// รหัสพิเศษ (Special words):
+// - 16'hFFFE: รหัสสั่งให้ Controller "หยุดรอแป๊บนึง (Delay)" 
+// - 16'hFFFF: รหัสสั่งให้ Controller "จบการทำงาน (End of table)" เพราะอ่านครบหมดแล้ว
+// ============================================================================
 module ov7670_init_rom (
-    input  wire [7:0] addr,
-    input  wire       colorbar,
-    output reg  [15:0] data
+    input  wire [7:0] addr,     // บรรทัดที่ Controller ขอให้อ่าน (0, 1, 2, ...)
+    input  wire       colorbar, // สัญญาณจากสวิตช์ (SW5) เพื่อสั่งให้กล้องส่งภาพแถบสี
+    output reg  [15:0] data     // ข้อมูล 16 บิตที่คายออกไปให้ Controller
 );
     always @(*) begin
         case (addr)
-            8'h00: data = 16'h1280; // COM7 reset
-            8'h01: data = 16'hFFFE; // settle after reset
-            8'h02: data = 16'h1280; // reset again, matching the reference flow
-            8'h03: data = 16'hFFFE;
+            // ----------------------------------------------------------------
+            // กลุ่มที่ 1: สั่งรีเซ็ตกล้องและรอให้ระบบนิ่ง (Reset Sequence)
+            // ----------------------------------------------------------------
+            8'h00: data = 16'h1280; // COM7: ส่งคำสั่ง Reset ล้างค่าทุกอย่างในกล้อง
+            8'h01: data = 16'hFFFE; // สั่งหน่วงเวลา (Delay) รอให้กล้องบูทเสร็จ
+            8'h02: data = 16'h1280; // ส่งคำสั่ง Reset ซ้ำอีกรอบเพื่อความชัวร์ (ตามสเปคของชิป)
+            8'h03: data = 16'hFFFE; // สั่งหน่วงเวลาอีกรอบ
 
-            // RGB565 setup based on the local example project's
-            // ov7670_registers.v. A few later values are board-specific color
-            // and noise trims for this Basys 3 + OV7670 module.
-            8'h04: data = colorbar ? 16'h1206 : 16'h1204;
+            // ----------------------------------------------------------------
+            // กลุ่มที่ 2: ตั้งค่าพื้นฐาน (RGB565 และลดสัญญาณรบกวน)
+            // ----------------------------------------------------------------
+            8'h04: data = colorbar ? 16'h1206 : 16'h1204; // สลับโหมด Color Bar หรือภาพปกติ
             8'h05: data = 16'h1100;
             8'h06: data = 16'h0C00;
             8'h07: data = 16'h3E00;
             8'h08: data = 16'h8C00;
             8'h09: data = 16'h0400;
-            8'h0A: data = 16'h40D0; // COM15: RGB565, full output range
+            8'h0A: data = 16'h40D0; // COM15: สั่งให้กล้องส่งภาพฟอร์แมต RGB565 (ส่งออกแบบ Full Range)
             8'h0B: data = 16'h3A04;
-            8'h0C: data = 16'h1438; // COM9: keep enough AGC for usable low-light brightness
-            8'h0D: data = 16'h4F80; // MTX1: reduce red/yellow cast on this module
-            8'h0E: data = 16'h5080; // MTX2: reduce red/yellow cast on this module
+            
+            // ----------------------------------------------------------------
+            // กลุ่มที่ 3: ปรับจูนภาพเฉพาะบอร์ด (ลดสีเพี้ยน ดึงความสว่าง)
+            // ----------------------------------------------------------------
+            8'h0C: data = 16'h1438; // COM9: ตั้งค่า Auto Gain ให้ภาพสว่างพอใช้งานในที่แสงน้อย
+            8'h0D: data = 16'h4F80; // MTX1: แก้ปัญหาภาพติดโทนอมแดง/อมเหลือง ที่เจอบ่อยในโมดูลกล้องรุ่นนี้
+            8'h0E: data = 16'h5080; // MTX2: ช่วยปรับแก้โทนสีแดง/เหลืองเพิ่มเติม
             8'h0F: data = 16'h5100;
+            
+            // (คำสั่งกลุ่มนี้คือ Magic numbers ที่ใช้เซ็ตค่า Matrix สีภายในชิปกล้อง)
             8'h10: data = 16'h523D;
             8'h11: data = 16'h53A7;
             8'h12: data = 16'h54E4;
@@ -68,22 +80,34 @@ module ov7670_init_rom (
             8'h33: data = 16'h9600;
             8'h34: data = 16'h9A00;
             8'h35: data = 16'hB084;
-            8'h36: data = 16'hB18C; // ABLC1: enable auto black-level calibration
+            
+            // ----------------------------------------------------------------
+            // กลุ่มที่ 4: ระบบอัตโนมัติ (แสง, สี, และความดำ)
+            // ----------------------------------------------------------------
+            8'h36: data = 16'hB18C; // ABLC1: เปิดระบบปรับสมดุลสีดำอัตโนมัติ (ช่วยให้สีดำสนิทขึ้น)
             8'h37: data = 16'hB20E;
             8'h38: data = 16'hB382;
             8'h39: data = 16'hB80A;
-            8'h3A: data = colorbar ? 16'h4208 : 16'h4200; // COM17 DSP color bars
-            8'h3B: data = 16'h13E5; // COM8: enable AGC/AEC; AWB off so fixed gains hold
-            8'h3C: data = 16'h4108; // COM16: enable color gain stage
-            8'h3D: data = 16'h6F9F; // AWB control
-            8'h3E: data = 16'h6A50; // green/red channel balance helper
+            8'h3A: data = colorbar ? 16'h4208 : 16'h4200; // COM17: ถ้าเปิดสวิตช์ ให้เปิดฟีเจอร์ Color bars ในชิป DSP ของกล้อง
+            8'h3B: data = 16'h13E5; // COM8: เปิดโหมดชดเชยแสงอัตโนมัติ (AGC/AEC) **แต่ปิด Auto White Balance (AWB)**
+            8'h3C: data = 16'h4108; // COM16: เปิดใช้งานวงจรปรับ Gain สี
+            8'h3D: data = 16'h6F9F; // ควบคุมพฤติกรรม AWB ทั่วไป
+            8'h3E: data = 16'h6A50; // ตัวช่วยควบคุมสมดุลแสงสีเขียว/แดง
 
-            // Manual sensor-side pre-gain trim. With AWB disabled above, these
-            // fixed red/blue gains keep the image from drifting frame to frame.
-            8'h3F: data = 16'h0180; // blue AWB gain, default is 0x80
-            8'h40: data = 16'h0250; // red AWB gain, default is 0x80
-            8'h41: data = 16'hFFFF;
-            default: data = 16'hFFFF;
+            // ----------------------------------------------------------------
+            // กลุ่มที่ 5: ล็อคค่าสี Manual (สำคัญมาก!)
+            // เนื่องจากเราสั่งปิด AWB (Auto White Balance) ไปในบรรทัด 0x3B ด้านบน
+            // เราจึงต้องมากำหนดค่า Gain ของสีน้ำเงินและแดงแบบคงที่ด้วยตัวเอง 
+            // ข้อดีคือ: ทำให้สีของวิดีโอ "นิ่ง" ไม่เปลี่ยนโทนสีไปมาเวลามีวัตถุขยับเข้ากล้อง
+            // ----------------------------------------------------------------
+            8'h3F: data = 16'h0180; // บังคับตั้งค่า Blue Gain คงที่ (ค่า Default คือ 0x80)
+            8'h40: data = 16'h0250; // บังคับตั้งค่า Red Gain คงที่ (ลดความอมแดงของกล้องตัวนี้ลง)
+            
+            // ----------------------------------------------------------------
+            // สิ้นสุดตำรา
+            // ----------------------------------------------------------------
+            8'h41: data = 16'hFFFF; // รหัสบอก Controller ว่า "ส่งตั้งค่าครบทุก Register แล้ว ทำงานต่อได้เลย!"
+            default: data = 16'hFFFF; // ป้องกันระบบค้างถ้าโดนถามบรรทัดที่ไม่มีอยู่จริง
         endcase
     end
 endmodule
