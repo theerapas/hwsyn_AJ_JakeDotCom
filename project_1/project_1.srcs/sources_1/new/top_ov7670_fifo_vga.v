@@ -3,13 +3,13 @@
 // Top-level video pipeline for Basys 3 + OV7670.
 //
 // Clock domains:
-// - CLK100MHZ drives SCCB camera configuration and creates the 25 MHz clock.
+// - CLK100MHZ drives SCCB camera configuration and creates derived clocks.
 // - cam_pclk_buf captures camera data in the OV7670 pixel clock domain.
-// - clk25 drives VGA timing and framebuffer reads.
+// - clk108 drives 1280x960 VGA timing and bilinear framebuffer readout.
 //
 // Video path:
-// OV7670 RGB565 stream -> 320x240 RGB444 framebuffer -> optional calibration,
-// gentle desaturation, and image filter -> 640x480 VGA output by 2x repetition.
+// OV7670 RGB565 stream -> 320x240 RGB444 framebuffer -> 4x bilinear scaler ->
+// optional calibration, gentle desaturation, and image filter -> 1280x960 VGA.
 module top_ov7670_fifo_vga (
     input  wire CLK100MHZ,
     input  wire [7:0] sw,
@@ -41,12 +41,19 @@ module top_ov7670_fifo_vga (
     // sw[5] enables the OV7670 internal color-bar test pattern.
     // sw[7:6] are currently unused, but mirrored on LEDs for visibility.
 
-    // Divide the 100 MHz board clock by 4. The resulting 25 MHz clock is used
-    // for both VGA timing and the OV7670 XCLK input.
+    // Divide the 100 MHz board clock by 4 for the OV7670 external clock.
     reg [1:0] div4 = 2'b00;
     always @(posedge CLK100MHZ) div4 <= div4 + 2'd1;
 
     wire clk25 = div4[1];
+    wire clk108;
+    wire clk108_locked;
+
+    vga_clock_108 clk108_u (
+        .clk100 (CLK100MHZ),
+        .clk108 (clk108),
+        .locked (clk108_locked)
+    );
 
     // OV7670 requires an external clock. 25 MHz works with the register
     // configuration used in ov7670_init_rom.v.
@@ -65,11 +72,12 @@ module top_ov7670_fifo_vga (
         .init_done (cam_init_done)
     );
 
-    wire [9:0] sx, sy;
+    wire [10:0] sx;
+    wire [9:0]  sy;
     wire       active_video;
 
     vga_640x480 vga_u (
-        .clk25        (clk25),
+        .clk25        (clk108),
         .sx           (sx),
         .sy           (sy),
         .hsync        (Hsync),
@@ -165,10 +173,26 @@ module top_ov7670_fifo_vga (
         end
     end
 
-    wire [8:0] src_x = sx[9:1];
-    wire [7:0] src_y = sy[8:1];
-    wire [16:0] rd_addr =
-        ({9'd0, src_y} << 8) + ({9'd0, src_y} << 6) + {8'd0, src_x};
+    wire [16:0] scaler_fb_addr;
+    reg  [11:0] scaler_fb_data = 12'h000;
+    wire [11:0] scaled_rgb;
+    wire        scaled_valid;
+
+    always @(posedge clk108) begin
+        scaler_fb_data <= framebuffer[scaler_fb_addr];
+    end
+
+    bilinear_upscaler_4x scaler_u (
+        .clk          (clk108),
+        .frame_ready  (frame_ready),
+        .sx           (sx),
+        .sy           (sy),
+        .active_video (active_video),
+        .fb_addr      (scaler_fb_addr),
+        .fb_data      (scaler_fb_data),
+        .rgb          (scaled_rgb),
+        .valid        (scaled_valid)
+    );
 
     reg [11:0] camera_rgb = 12'h000;
     reg [11:0] balanced_rgb = 12'h000;
@@ -327,14 +351,14 @@ module top_ov7670_fifo_vga (
         end
     endfunction
 
-    always @(posedge clk25) begin
-        if (sx < 80)       test_rgb <= 12'hF00;
-        else if (sx < 160) test_rgb <= 12'h0F0;
-        else if (sx < 240) test_rgb <= 12'h00F;
-        else if (sx < 320) test_rgb <= 12'hFF0;
-        else if (sx < 400) test_rgb <= 12'h0FF;
-        else if (sx < 480) test_rgb <= 12'hF0F;
-        else if (sx < 560) test_rgb <= 12'hFFF;
+    always @(posedge clk108) begin
+        if (sx < 160)       test_rgb <= 12'hF00;
+        else if (sx < 320)  test_rgb <= 12'h0F0;
+        else if (sx < 480)  test_rgb <= 12'h00F;
+        else if (sx < 640)  test_rgb <= 12'hFF0;
+        else if (sx < 800)  test_rgb <= 12'h0FF;
+        else if (sx < 960)  test_rgb <= 12'hF0F;
+        else if (sx < 1120) test_rgb <= 12'hFFF;
         else               test_rgb <= 12'h888;
 
         live_rgb <= {
@@ -343,8 +367,8 @@ module top_ov7670_fifo_vga (
             pclk_seen ? 4'hF : 4'h0
         };
 
-        if (active_video && frame_ready) begin
-            camera_rgb <= framebuffer[rd_addr];
+        if (active_video && scaled_valid && clk108_locked) begin
+            camera_rgb <= scaled_rgb;
             // The camera's own color bars bypass image cleanup so the test
             // pattern shows the raw configured sensor output.
             balanced_rgb <= sw[5] ? camera_rgb : soft_desaturate(color_balance(camera_rgb));
@@ -356,9 +380,9 @@ module top_ov7670_fifo_vga (
         end
     end
 
-    assign vgaRed   = active_video ? (sw[0] ? test_rgb[11:8] : (sw[1] ? live_rgb[11:8] : filtered_rgb[11:8])) : 4'h0;
-    assign vgaGreen = active_video ? (sw[0] ? test_rgb[7:4]  : (sw[1] ? live_rgb[7:4]  : filtered_rgb[7:4]))  : 4'h0;
-    assign vgaBlue  = active_video ? (sw[0] ? test_rgb[3:0]  : (sw[1] ? live_rgb[3:0]  : filtered_rgb[3:0]))  : 4'h0;
+    assign vgaRed   = (active_video && clk108_locked) ? (sw[0] ? test_rgb[11:8] : (sw[1] ? live_rgb[11:8] : filtered_rgb[11:8])) : 4'h0;
+    assign vgaGreen = (active_video && clk108_locked) ? (sw[0] ? test_rgb[7:4]  : (sw[1] ? live_rgb[7:4]  : filtered_rgb[7:4]))  : 4'h0;
+    assign vgaBlue  = (active_video && clk108_locked) ? (sw[0] ? test_rgb[3:0]  : (sw[1] ? live_rgb[3:0]  : filtered_rgb[3:0]))  : 4'h0;
 
     // LED debug map for bring-up: initialization, sync activity, pixel-clock
     // activity, frame detection, selected debug modes, and raw switch state.
