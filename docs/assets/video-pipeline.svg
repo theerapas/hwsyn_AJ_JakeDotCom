@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="640" viewBox="0 0 1120 640" role="img" aria-labelledby="title desc">
+  <title id="title">Basys 3 and OV7670 video pipeline</title>
+  <desc id="desc">Camera configuration at 100 MHz, pixel capture in the camera PCLK domain, a 320 by 240 RGB444 block RAM framebuffer, and image processing with 640 by 480 VGA output at 25 MHz.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#60738c"/></marker>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; fill: #172b49; }
+      .title { font-size: 28px; font-weight: 700; }
+      .heading { font-size: 18px; font-weight: 700; }
+      .body { font-size: 16px; }
+      .small { font-size: 14px; fill: #53657b; }
+      .label { font-size: 13px; fill: #53657b; font-weight: 700; letter-spacing: 1px; }
+      .wire { fill: none; stroke: #60738c; stroke-width: 2.5; marker-end: url(#arrow); }
+      .box { fill: #ffffff; stroke: #bdcadb; stroke-width: 1.5; }
+    </style>
+  </defs>
+  <rect width="1120" height="640" rx="20" fill="#f4f7fc"/>
+  <text x="40" y="53" class="title">Real-time video, built in programmable logic</text>
+  <text x="40" y="83" class="body">OV7670 camera → Basys 3 FPGA → VGA monitor</text>
+
+  <rect x="35" y="112" width="1050" height="165" rx="14" fill="#e7eefb"/>
+  <text x="55" y="138" class="label">CONTROL PATH · 100 MHz BOARD CLOCK</text>
+  <rect x="55" y="153" width="235" height="100" rx="10" class="box"/>
+  <text x="73" y="182" class="heading">Camera initialization</text>
+  <text x="73" y="208" class="body">Reset → settle → ROM table</text>
+  <text x="73" y="233" class="small">SW5 change restarts configuration</text>
+  <path d="M290 203 H340" class="wire"/>
+  <rect x="340" y="153" width="220" height="100" rx="10" class="box"/>
+  <text x="359" y="182" class="heading">SCCB register writer</text>
+  <text x="359" y="208" class="body">Address + register + data</text>
+  <text x="359" y="233" class="small">Open-drain SIOD · ~25 kHz SIOC</text>
+  <path d="M560 203 H610" class="wire"/>
+  <rect x="610" y="153" width="210" height="100" rx="10" class="box"/>
+  <text x="629" y="182" class="heading">OV7670 registers</text>
+  <text x="629" y="208" class="body">RGB565 + color settings</text>
+  <text x="629" y="233" class="small">Optional sensor color bars</text>
+  <rect x="850" y="153" width="215" height="100" rx="10" class="box"/>
+  <text x="869" y="182" class="heading">Clock divider</text>
+  <text x="869" y="208" class="body">100 MHz ÷ 4 = 25 MHz</text>
+  <text x="869" y="233" class="small">Feeds camera XCLK + VGA</text>
+
+  <rect x="35" y="301" width="420" height="200" rx="14" fill="#e3f3f0"/>
+  <text x="55" y="328" class="label">CAPTURE PATH · CAMERA PCLK</text>
+  <rect x="55" y="347" width="145" height="125" rx="10" class="box"/>
+  <text x="72" y="380" class="heading">OV7670</text>
+  <text x="72" y="406" class="body">8-bit pixel bus</text>
+  <text x="72" y="431" class="small">2 bytes / pixel</text>
+  <text x="72" y="453" class="small">HREF + VSYNC</text>
+  <path d="M200 409 H239" class="wire"/>
+  <rect x="239" y="347" width="196" height="125" rx="10" class="box"/>
+  <text x="256" y="380" class="heading">Capture + convert</text>
+  <text x="256" y="406" class="body">RGB565 → RGB444</text>
+  <text x="256" y="431" class="small">Keep even rows / columns</text>
+  <text x="256" y="453" class="small">640 × 480 → 320 × 240</text>
+
+  <rect x="495" y="347" width="170" height="125" rx="10" fill="#172b49"/>
+  <text x="513" y="380" style="fill:white" class="heading">BRAM frame</text>
+  <text x="513" y="406" style="fill:white" class="body">320 × 240 × 12 bit</text>
+  <text x="513" y="431" style="fill:#cad7e8" class="small">76,800 pixels</text>
+  <text x="513" y="453" style="fill:#cad7e8" class="small">112.5 KiB payload</text>
+  <path d="M435 409 H495" class="wire"/>
+
+  <rect x="705" y="301" width="380" height="200" rx="14" fill="#fff0dc"/>
+  <text x="725" y="328" class="label">DISPLAY PATH · 25 MHz</text>
+  <rect x="725" y="347" width="180" height="125" rx="10" class="box"/>
+  <text x="742" y="380" class="heading">Image processing</text>
+  <text x="742" y="406" class="body">Color cleanup + filter</text>
+  <text x="742" y="431" class="small">SW4:SW2 select mode</text>
+  <text x="742" y="453" class="small">2× pixel / row repetition</text>
+  <path d="M665 409 H725" class="wire"/>
+  <path d="M905 409 H938" class="wire"/>
+  <rect x="938" y="347" width="127" height="125" rx="10" class="box"/>
+  <text x="954" y="380" class="heading">VGA</text>
+  <text x="954" y="406" class="body">640 × 480</text>
+  <text x="954" y="431" class="small">~59.52 Hz</text>
+  <text x="954" y="453" class="small">RGB + sync</text>
+  <text x="40" y="543" class="heading">Bring-up visibility</text>
+  <text x="40" y="572" class="body">FPGA color bars (SW0) · raw camera signal view (SW1) · initialization and activity LEDs</text>
+  <text x="40" y="607" class="small">Baseline: 640 × 480 output. The extra_credit/ folder contains the submitted 1280 × 960 bilinear version.</text>
+</svg>

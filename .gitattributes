@@ -1,0 +1,9 @@
+# Preserve submitted HDL, testbenches, and constraints byte-for-byte.
+/baseline/** -text
+/extra_credit/** -text
+
+# Documentation and build instructions use consistent line endings.
+*.md text eol=lf
+*.tcl text eol=lf
+*.json text eol=lf
+*.svg text eol=lf

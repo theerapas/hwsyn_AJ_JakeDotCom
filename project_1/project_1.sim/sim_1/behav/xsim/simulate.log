@@ -1,3 +1,0 @@
-Time resolution is 1 ps
-PASS: VGA timing generated one 640x480 frame correctly.
-$finish called at time : 16799980 ns : File "C:/Users/timap/Desktop/Tim/CU/Year2/HWSynLab/project_copy/hwsyn_AJ_JakeDotCom/project_1/project_1.srcs/sim_1/imports/new/tb_vga_640x480.v" Line 59

@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="575" viewBox="0 0 1120 575" role="img" aria-labelledby="title desc">
+  <title id="title">1280 by 960 bilinear upscaling pipeline</title>
+  <desc id="desc">A 320 by 240 RGB444 framebuffer supplies alternating banks of two row buffers. The 108 MHz display path blends four neighboring source pixels with horizontal and vertical fractional weights, then applies image cleanup and filtering before VGA output.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#60738c"/></marker>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; fill: #172b49; }
+      .title { font-size: 28px; font-weight: 700; }
+      .heading { font-size: 18px; font-weight: 700; }
+      .body { font-size: 16px; }
+      .small { font-size: 14px; fill: #53657b; }
+      .label { font-size: 13px; fill: #53657b; font-weight: 700; letter-spacing: 1px; }
+      .wire { fill: none; stroke: #60738c; stroke-width: 2.5; marker-end: url(#arrow); }
+      .box { fill: white; stroke: #bdcadb; stroke-width: 1.5; }
+    </style>
+  </defs>
+  <rect width="1120" height="575" rx="20" fill="#f4f7fc"/>
+  <text x="40" y="53" class="title">Extra credit: 4× bilinear upscaling in hardware</text>
+  <text x="40" y="83" class="body">Keep the 320 × 240 frame · interpolate during display · output 1280 × 960 at 60 Hz</text>
+  <rect x="35" y="113" width="1050" height="330" rx="14" fill="#e7eefb"/>
+  <text x="55" y="143" class="label">DISPLAY PATH · 108 MHz MMCM CLOCK</text>
+  <rect x="55" y="168" width="195" height="133" rx="10" fill="#172b49"/>
+  <text x="74" y="200" style="fill:white" class="heading">BRAM framebuffer</text>
+  <text x="74" y="229" style="fill:white" class="body">320 × 240 RGB444</text>
+  <text x="74" y="256" style="fill:#cad7e8" class="small">112.5 KiB pixel payload</text>
+  <text x="74" y="280" style="fill:#cad7e8" class="small">Writes on camera PCLK</text>
+  <path d="M250 232 H290" class="wire"/>
+  <rect x="290" y="168" width="238" height="133" rx="10" class="box"/>
+  <text x="309" y="200" class="heading">Two-row buffer banks</text>
+  <text x="309" y="229" class="body">Bank A: row 0 + row 1</text>
+  <text x="309" y="256" class="body">Bank B: row 0 + row 1</text>
+  <text x="309" y="280" class="small">Display one bank; prefetch another</text>
+  <path d="M528 232 H568" class="wire"/>
+  <rect x="568" y="168" width="237" height="133" rx="10" class="box"/>
+  <text x="587" y="200" class="heading">Bilinear interpolation</text>
+  <text x="587" y="229" class="body">P00 + P10 + P01 + P11</text>
+  <text x="587" y="256" class="small">Horizontal mix → vertical mix</text>
+  <text x="587" y="280" class="small">Per-channel additions and shifts</text>
+  <path d="M805 232 H845" class="wire"/>
+  <rect x="845" y="168" width="220" height="133" rx="10" class="box"/>
+  <text x="864" y="200" class="heading">Filter → VGA</text>
+  <text x="864" y="229" class="body">Cleanup + selected filter</text>
+  <text x="864" y="256" class="small">1800 × 1000 raster · 60 Hz</text>
+  <text x="864" y="280" class="small">RGB enabled after clock lock</text>
+  <rect x="55" y="327" width="1010" height="89" rx="10" class="box"/>
+  <text x="75" y="357" class="heading">Output coordinates select source pixels and fractional weights</text>
+  <text x="75" y="386" class="body">Source: sx[10:2], sy[9:2] · Fractions: sx[1:0], sy[1:0] · Weights: 0/4, 1/4, 2/4, 3/4</text>
+  <text x="40" y="482" class="heading">Clocks stay independent</text>
+  <text x="40" y="512" class="body">100 MHz board clock → MMCM → 108 MHz VGA · 100 MHz ÷ 4 → 25 MHz camera XCLK</text>
+  <text x="40" y="548" class="small">Diagram describes the submitted extra_credit/ RTL. Enlargement smooths transitions without increasing captured detail.</text>
+</svg>

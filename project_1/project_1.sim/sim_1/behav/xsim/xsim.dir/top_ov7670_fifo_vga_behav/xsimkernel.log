@@ -1,7 +1,0 @@
-Running: xsim.dir/top_ov7670_fifo_vga_behav/xsimk.exe -simmode gui -wdb top_ov7670_fifo_vga_behav.wdb -simrunnum 0 -socket 50267
-Design successfully loaded
-Design Loading Memory Usage: 11692 KB (Peak: 11692 KB)
-Design Loading CPU Usage: 46 ms
-Simulation completed
-Simulation Memory Usage: 12832 KB (Peak: 12832 KB)
-Simulation CPU Usage: 155 ms

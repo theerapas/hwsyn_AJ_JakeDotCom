@@ -1,0 +1,7 @@
+# Recreated Vivado projects and local simulation output
+/build/
+/sim-output/
+/.Xil/
+/vivado*.log
+/vivado*.jou
+/vivado*.str
