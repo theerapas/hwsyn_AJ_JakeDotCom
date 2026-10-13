@@ -4,7 +4,7 @@
 
 This project captures live camera pixels, stores a compact frame in FPGA block RAM, and applies switch-selectable image filters before displaying the result on a VGA monitor. Camera configuration, pixel capture, image processing, and display timing all run in programmable logic.
 
-This repository preserves the completed project as submitted for grading in `project_code.zip`. It includes the **640 × 480 baseline** and the **1280 × 960 extra-credit implementation**, with the submitted HDL, testbenches, and constraints unchanged.
+This repository includes the completed project's **640 × 480 baseline** and **1280 × 960 extra-credit implementation**.
 
 Developed by **AJ.JakeDotCom** for Hardware Synthesis Lab I at Chulalongkorn University, this project demonstrates RTL design, peripheral interfacing, memory budgeting, system integration, and simulation-based verification.
 
@@ -63,10 +63,10 @@ extra_credit/
     constraint/     # Extra-credit board constraints
 scripts/
     create_project.tcl
-docs/              # Report, illustrations, and submission manifest
+docs/              # Report and illustrations
 ```
 
-Each version is built separately because its modules use the same names. The historical `baseline` Git branch preserves the original Vivado project; the `baseline/` folder on `main` contains the baseline files from the grading ZIP. Generated Vivado projects, caches, and run outputs are excluded from this portfolio branch.
+Each version is built separately because its modules use the same names. The historical `baseline` Git branch preserves the original Vivado project; the `baseline/` folder on `main` contains the baseline source, testbenches, and constraints. Generated Vivado projects, caches, and run outputs are excluded from this portfolio branch.
 
 ## Architecture and design decisions
 
@@ -235,14 +235,6 @@ The project also illustrates why resolution, color depth, and memory allocation 
 - **SCCB diagnostics:** the writer releases SIOD for the ninth bit but does not validate camera acknowledgement or retry failed writes. LED0 indicates sequencer completion rather than confirmed camera communication.
 - **Validation scope:** focused simulations cover block behavior and a short synthetic capture line; they do not establish full-frame, end-to-end hardware performance or measured camera frame rate.
 - **Display timing:** 25 MHz with an 800 × 525 raster yields approximately 59.52 Hz. This is the project's nominal 60 Hz VGA mode; monitor compatibility depends on the display.
-
-### Submission provenance
-
-The authoritative source is the grading archive `project_code.zip`. Its `project_code/main/` contents map to `baseline/`, and its `project_code/extra_credit/` contents map to `extra_credit/`. All 24 source, simulation, and constraint files are preserved byte-for-byte, including comments and line endings.
-
-The [submission manifest](docs/submission-manifest.json) records the archive SHA-256 and each file's original archive path, destination, byte count, and SHA-256. The portfolio organization and build script are added documentation/support files; the submitted HDL and tests are unmodified.
-
-The original development branches remain as history. The project is complete and is not under active development.
 
 ## Team and documentation
 
